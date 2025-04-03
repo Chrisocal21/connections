@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Connections Game
 
 A word-connection puzzle game where players find groups of 4 related words.
@@ -130,3 +131,6 @@ npm start
 6. Test functionality
 
 Remember to test touch interactions and responsive layout when implementing on mobile devices.
+=======
+# connections
+>>>>>>> 590663d249b0bc4708e494d2333b5476dd5fe19d
