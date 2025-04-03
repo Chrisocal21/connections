@@ -98,7 +98,7 @@ export class GameLogic {
                 success: false,
                 message: this.lives > 0 ? 
                     `Wrong combination. ${this.lives} tries remaining.` : 
-                    'Game Over!'
+                    'Game Over! Click Restart to try again.'
             };
         }
     }

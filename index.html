@@ -173,6 +173,116 @@
             display: none;
         }
 
+        .restart-btn, .highscore-btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px 5px;
+            transition: background-color 0.2s, transform 0.1s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            display: none;
+        }
+
+        .restart-btn {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        .restart-btn:hover {
+            background-color: #d32f2f;
+            transform: translateY(-1px);
+        }
+        
+        .highscore-btn {
+            background-color: #ff9800;
+            color: white;
+        }
+        
+        .highscore-btn:hover {
+            background-color: #f57c00;
+            transform: translateY(-1px);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: var(--container-bg);
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 80%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            color: var(--text-color);
+        }
+
+        .close-btn {
+            position: absolute;
+            right: 15px;
+            top: 10px;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-color);
+        }
+
+        .highscore-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+
+        .highscore-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid var(--button-border);
+        }
+
+        .initials-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .initials-input {
+            padding: 10px;
+            font-size: 16px;
+            text-align: center;
+            width: 100px;
+            border: 1px solid var(--button-border);
+            border-radius: 4px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .submit-initials-btn {
+            padding: 10px 20px;
+            background-color: var(--submit-btn-bg);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
         @media (max-width: 480px) {
             body {
                 padding: 10px;
@@ -202,6 +312,12 @@
             .submit-btn, .next-level-btn {
                 padding: 8px 16px;
                 font-size: 14px;
+            }
+
+            .restart-btn, .highscore-btn {
+                padding: 8px 16px;
+                font-size: 14px;
+                margin: 5px 3px;
             }
         }
 
@@ -279,10 +395,33 @@
         <p>Find groups of 4 related words</p>
         
         <div class="word-grid" id="wordGrid"></div>
-        <div id="message" class="message"></div> <!-- Move message here -->
+        <div id="message" class="message"></div>
         <div class="controls">
             <button id="submitBtn" class="submit-btn" disabled>Submit Selection</button>
             <button id="nextLevelBtn" class="next-level-btn">Next Level</button>
+            <button id="restartBtn" class="restart-btn">Restart Game</button>
+            <button id="highscoreBtn" class="highscore-btn">Highscores</button>
+        </div>
+    </div>
+
+    <!-- Highscore Modal -->
+    <div id="highscoreModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeHighscore">&times;</span>
+            <h2>Highscores</h2>
+            <ul id="highscoreList" class="highscore-list"></ul>
+        </div>
+    </div>
+
+    <!-- New Highscore Modal -->
+    <div id="newHighscoreModal" class="modal">
+        <div class="modal-content">
+            <h2>New Highscore!</h2>
+            <p>You reached level <span id="highscoreLevel"></span></p>
+            <form id="initialsForm" class="initials-form">
+                <input type="text" id="initialsInput" class="initials-input" maxlength="3" placeholder="AAA" required>
+                <button type="submit" class="submit-initials-btn">Submit</button>
+            </form>
         </div>
     </div>
 
@@ -292,6 +431,7 @@
 
         const game = new GameLogic(wordBank);
         let selectedWords = new Set();
+        let highscores = JSON.parse(localStorage.getItem('connections-highscores')) || [];
 
         function updateUI() {
             const state = game.getGameState();
@@ -300,7 +440,13 @@
             document.getElementById('remainingLives').textContent = state.lives;
             document.getElementById('levelProgress').style.width = 
                 `${(state.level / state.maxLevels) * 100}%`;
-            updateFoundGroups();
+            
+            // Show/hide restart button based on game state
+            document.getElementById('restartBtn').style.display = 
+                game.isGameOver() ? 'inline-block' : 'none';
+            
+            // Always show highscore button
+            document.getElementById('highscoreBtn').style.display = 'inline-block';
         }
 
         function showMessage(text, type) {
@@ -376,9 +522,7 @@
             document.getElementById('submitBtn').disabled = selectedWords.size !== 4;
         }
 
-        document.getElementById('submitBtn').addEventListener('click', () => {
-            const result = game.checkGuess(Array.from(selectedWords));
-            
+        function handleSubmitResult(result) {
             if (result.success) {
                 // Add success animation to found words
                 selectedWords.forEach(word => {
@@ -395,6 +539,7 @@
                     if (game.isGameComplete()) {
                         showMessage('Congratulations! You completed all 50 levels!', 'success');
                         document.getElementById('nextLevelBtn').style.display = 'none';
+                        checkHighscore(game.currentLevel);
                     } else {
                         game.currentLevel++;
                         showMessage('Level Complete! Click Next Level to continue', 'success');
@@ -409,6 +554,13 @@
                         btn.style.animation = '';
                     }, 500);
                 });
+                
+                // Check if game is over after wrong guess
+                if (game.isGameOver()) {
+                    showMessage('Game Over! You ran out of tries.', 'error');
+                    document.getElementById('submitBtn').disabled = true;
+                    checkHighscore(game.currentLevel);
+                }
             }
             
             showMessage(result.message, result.success ? 'success' : 'error');
@@ -416,12 +568,110 @@
             document.querySelectorAll('.word-button.selected')
                 .forEach(btn => btn.classList.remove('selected'));
             updateUI();
+        }
+
+        document.getElementById('submitBtn').addEventListener('click', () => {
+            const result = game.checkGuess(Array.from(selectedWords));
+            handleSubmitResult(result);
         });
 
         document.getElementById('nextLevelBtn').addEventListener('click', startNewLevel);
 
+        // Restart button functionality
+        document.getElementById('restartBtn').addEventListener('click', () => {
+            game.currentLevel = 1;
+            game.lives = 4;
+            game.usedWords = new Set();
+            startNewLevel();
+            document.getElementById('submitBtn').disabled = true;
+        });
+
+        // Highscore functionality
+        function checkHighscore(level) {
+            // Check if this level is higher than existing scores or if there are fewer than 10 scores
+            if (highscores.length < 10 || level > highscores[highscores.length - 1].level) {
+                document.getElementById('highscoreLevel').textContent = level;
+                document.getElementById('newHighscoreModal').style.display = 'flex';
+            }
+        }
+
+        document.getElementById('initialsForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const initials = document.getElementById('initialsInput').value.toUpperCase();
+            const level = game.currentLevel;
+            
+            // Add new highscore
+            highscores.push({ initials, level, date: new Date().toISOString() });
+            
+            // Sort highscores by level (highest first)
+            highscores.sort((a, b) => b.level - a.level);
+            
+            // Keep only top 10
+            highscores = highscores.slice(0, 10);
+            
+            // Save to localStorage
+            localStorage.setItem('connections-highscores', JSON.stringify(highscores));
+            
+            // Close modal and show highscores
+            document.getElementById('newHighscoreModal').style.display = 'none';
+            showHighscores();
+        });
+
+        // Highscore button functionality
+        document.getElementById('highscoreBtn').addEventListener('click', showHighscores);
+
+        function showHighscores() {
+            const highscoreList = document.getElementById('highscoreList');
+            highscoreList.innerHTML = '';
+            
+            if (highscores.length === 0) {
+                const noScores = document.createElement('li');
+                noScores.textContent = 'No highscores yet!';
+                highscoreList.appendChild(noScores);
+            } else {
+                highscores.forEach((score, index) => {
+                    const scoreItem = document.createElement('li');
+                    scoreItem.className = 'highscore-item';
+                    
+                    const rank = document.createElement('span');
+                    rank.textContent = `${index + 1}.`;
+                    
+                    const info = document.createElement('span');
+                    info.textContent = `${score.initials} - Level ${score.level}`;
+                    
+                    const date = document.createElement('span');
+                    date.textContent = new Date(score.date).toLocaleDateString();
+                    
+                    scoreItem.appendChild(rank);
+                    scoreItem.appendChild(info);
+                    scoreItem.appendChild(date);
+                    highscoreList.appendChild(scoreItem);
+                });
+            }
+            
+            document.getElementById('highscoreModal').style.display = 'flex';
+        }
+
+        // Close highscore modal
+        document.getElementById('closeHighscore').addEventListener('click', () => {
+            document.getElementById('highscoreModal').style.display = 'none';
+        });
+
+        // Close modals when clicking outside
+        window.addEventListener('click', (e) => {
+            if (e.target === document.getElementById('highscoreModal')) {
+                document.getElementById('highscoreModal').style.display = 'none';
+            }
+            if (e.target === document.getElementById('newHighscoreModal')) {
+                document.getElementById('newHighscoreModal').style.display = 'none';
+            }
+        });
+
         // Start first level when page loads
-        window.addEventListener('load', startNewLevel);
+        window.addEventListener('load', () => {
+            startNewLevel();
+            document.getElementById('highscoreBtn').style.display = 'inline-block';
+        });
 
         // Theme toggle functionality
         const themeToggle = document.getElementById('themeToggle');

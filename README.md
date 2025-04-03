@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Connections Game
 
 A word-connection puzzle game where players find groups of 4 related words.
@@ -40,6 +39,8 @@ npm start
 - Lives system (4 tries per level)
 - Progress tracking
 - Animated feedback
+- Restart functionality
+- Highscore leaderboard with player initials
 
 ## Game Structure
 
@@ -51,6 +52,8 @@ npm start
 - Next level button
 - Theme toggle
 - Success/Error messages
+- Restart button
+- Highscores button
 
 ### Difficulty Progression:
 - Levels 1-10: Easy (difficulty 1-2)
@@ -65,6 +68,7 @@ npm start
 - ES6 Modules
 - CSS Variables for theming
 - Responsive CSS Grid layout
+- Local Storage for saving highscores
 
 ### Features to Implement
 1. Main game grid (4x4)
@@ -75,6 +79,8 @@ npm start
 6. Theme switching
 7. Responsive design
 8. Animation effects
+9. Restart functionality
+10. Highscore leaderboard
 
 ## Core Files Structure
 
@@ -121,6 +127,15 @@ npm start
    - System preference detection
    - Smooth transitions
 
+5. Restart Functionality:
+   - Resets game progress
+   - Restores initial lives and level
+
+6. Highscore Leaderboard:
+   - Saves player initials and scores
+   - Displays top scores
+   - Uses Local Storage for persistence
+
 ## Using with App Koder
 
 1. Create new project
@@ -131,6 +146,3 @@ npm start
 6. Test functionality
 
 Remember to test touch interactions and responsive layout when implementing on mobile devices.
-=======
-# connections
->>>>>>> 590663d249b0bc4708e494d2333b5476dd5fe19d
