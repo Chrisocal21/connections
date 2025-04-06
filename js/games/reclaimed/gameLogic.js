@@ -1,6 +1,7 @@
 /**
  * Reclaimed Game Logic
  * A post-apocalyptic survival game where players rebuild civilization
+ * Version 1.1.0 - Updated April 2025
  */
 
 class ReclaimedGame {
