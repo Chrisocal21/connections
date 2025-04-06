@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tile Quest</title>
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Slide the tiles to solve the puzzle">
+    <meta name="theme-color" content="#4285f4">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.svg">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <!-- End PWA Meta Tags -->
+    <style>
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            color: var(--text-color);
+            margin-bottom: 30px;
+        }
+
+        #board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+
+        .tile {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--button-bg);
+            border: 2px solid var(--button-border);
+            color: var(--text-color);
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s ease-in-out;
+            border-radius: 8px;
+        }
+
+        .tile:hover:not(.empty) {
+            border-color: var(--button-selected-border);
+            transform: scale(1.02);
+        }
+
+        .empty {
+            background-color: var(--container-bg);
+            border: 2px dashed var(--button-border);
+            cursor: default;
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: var(--button-selected-border);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background-color: var(--submit-btn-hover);
+            transform: translateY(-2px);
+        }
+
+        .game-container {
+            background-color: var(--container-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .move-counter {
+            margin-top: 15px;
+            font-size: 18px;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 8px 16px;
+            background-color: var(--button-bg);
+            color: var(--text-color);
+            border: 1px solid var(--button-border);
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .back-button:hover {
+            background-color: var(--button-selected);
+        }
+
+        :root {
+            --bg-color: #f0f0f0;
+            --container-bg: #ffffff;
+            --text-color: #333333;
+            --button-bg: #ffffff;
+            --button-border: #dddddd;
+            --button-selected: #e3f2fd;
+            --button-selected-border: #2196f3;
+            --submit-btn-bg: #2e7d32;
+            --submit-btn-hover: #1b5e20;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #1a1a1a;
+            --container-bg: #2d2d2d;
+            --text-color: #ffffff;
+            --button-bg: #3d3d3d;
+            --button-border: #4d4d4d;
+            --button-selected: #1e3a5f;
+            --button-selected-border: #2196f3;
+            --submit-btn-bg: #43a047;
+            --submit-btn-hover: #388e3c;
+        }
+
+        @media (max-width: 480px) {
+            #board {
+                grid-template-columns: repeat(3, 80px);
+                grid-template-rows: repeat(3, 80px);
+            }
+
+            .game-container {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="/" class="back-button">← Home</a>
+    <div class="game-container">
+        <h1>Tile Quest</h1>
+        <div id="board"></div>
+        <button onclick="shuffleTiles()">Shuffle</button>
+        <div id="moveCounter" class="move-counter">Moves: 0</div>
+    </div>
+
+    <script>
+        // Theme detection
+        const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+        if (prefersDarkScheme.matches) {
+            document.body.setAttribute('data-theme', 'dark');
+        }
+
+        const board = document.getElementById('board');
+        const moveCounter = document.getElementById('moveCounter');
+        let tiles = [];
+        let moves = 0;
+
+        function createBoard() {
+            tiles = [...Array(8).keys()].map(n => n + 1); // Tiles 1–8
+            tiles.push(null); // Empty tile
+            renderBoard();
+        }
+
+        function renderBoard() {
+            board.innerHTML = '';
+            tiles.forEach((val, index) => {
+                const tile = document.createElement('div');
+                tile.className = 'tile';
+                tile.dataset.index = index;
+                if (val === null) {
+                    tile.classList.add('empty');
+                } else {
+                    tile.textContent = val;
+                    tile.addEventListener('click', () => moveTile(index));
+                }
+                board.appendChild(tile);
+            });
+        }
+
+        function moveTile(index) {
+            const emptyIndex = tiles.indexOf(null);
+            const validMoves = [index - 1, index + 1, index - 3, index + 3];
+
+            if (validMoves.includes(emptyIndex) &&
+                Math.abs((emptyIndex % 3) - (index % 3)) <= 1 &&
+                Math.abs((emptyIndex - index)) <= 3) {
+                [tiles[emptyIndex], tiles[index]] = [tiles[index], tiles[emptyIndex]];
+                moves++;
+                moveCounter.textContent = `Moves: ${moves}`;
+                renderBoard();
+                checkWin();
+            }
+        }
+
+        function shuffleTiles() {
+            do {
+                for (let i = tiles.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
+                }
+            } while (!isSolvable());
+            moves = 0;
+            moveCounter.textContent = `Moves: ${moves}`;
+            renderBoard();
+        }
+
+        function isSolvable() {
+            const arr = tiles.filter(n => n !== null);
+            let invCount = 0;
+            for (let i = 0; i < arr.length - 1; i++) {
+                for (let j = i + 1; j < arr.length; j++) {
+                    if (arr[i] > arr[j]) invCount++;
+                }
+            }
+            return invCount % 2 === 0;
+        }
+
+        function checkWin() {
+            const win = [...Array(8).keys()].map(n => n + 1).concat(null);
+            if (tiles.every((val, i) => val === win[i])) {
+                setTimeout(() => {
+                    alert('🎉 You solved the puzzle!');
+                }, 300);
+            }
+        }
+
+        createBoard();
+        shuffleTiles();
+    </script>
+</body>
+</html>
