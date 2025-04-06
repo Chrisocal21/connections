@@ -349,26 +349,16 @@
             
             h1 {
                 font-size: 2em;
-                margin-top: 60px;
+                margin-top: 20px;
             }
             
             .day-counter, .leadership-badge {
-                position: relative;
-                top: 0;
-                right: 0;
-                display: inline-block;
-                margin: 5px;
-            }
-            
-            .leadership-badge {
-                position: relative;
-                top: 0;
-                right: 0;
-                margin-bottom: 15px;
+                display: none; /* Hide desktop versions on mobile */
             }
             
             #game-container {
                 padding: 15px 10px;
+                margin-top: 15px;
             }
             
             .resources {
@@ -428,26 +418,38 @@
                 padding: 6px 12px;
                 z-index: 100;
             }
-            
-            /* Adjustments for the status indicators on mobile */
-            .indicator-container {
-                display: flex;
-                flex-wrap: wrap;
-                justify-content: center;
-                gap: 5px;
-                margin-bottom: 15px;
-            }
         }
         
-        /* Essential indicators on mobile view */
+        /* Mobile indicators styling */
         .indicator-container {
             display: none;
+            justify-content: center;
+            margin: 5px 0 15px 0;
+            gap: 15px;
         }
         
         @media (max-width: 768px) {
             .indicator-container {
                 display: flex;
             }
+        }
+        
+        .mobile-indicator {
+            background: rgba(30, 30, 30, 0.7);
+            border-radius: 5px;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+            gap: 8px;
+        }
+        
+        .mobile-day {
+            background: rgba(30, 58, 95, 0.8);
+        }
+        
+        .mobile-leadership {
+            background: rgba(95, 30, 75, 0.8);
         }
     </style>
 </head>
@@ -457,8 +459,12 @@
     <div class="leadership-badge" id="leadership-display"><span class="leadership-icon">👑</span> Leadership: 0</div>
     
     <div class="indicator-container">
-        <div class="day-counter" id="mobile-day-display">Day 1</div>
-        <div class="leadership-badge" id="mobile-leadership-display"><span class="leadership-icon">👑</span> 0</div>
+        <div class="mobile-indicator mobile-day">
+            <span>☀️</span> <span id="mobile-day-display">1</span>
+        </div>
+        <div class="mobile-indicator mobile-leadership">
+            <span>👑</span> <span id="mobile-leadership-display">0</span>
+        </div>
     </div>
     
     <h1>RECLAIMED</h1>
@@ -720,10 +726,10 @@
         function updateUI() {
             // Update both desktop and mobile indicators
             dayDisplay.textContent = `Day ${game.gameState.day}`;
-            document.getElementById('mobile-day-display').textContent = `Day ${game.gameState.day}`;
+            document.getElementById('mobile-day-display').textContent = `${game.gameState.day}`;
             
             leadershipDisplay.innerHTML = `<span class="leadership-icon">👑</span> Leadership: ${game.gameState.leadershipScore}`;
-            document.getElementById('mobile-leadership-display').innerHTML = `<span class="leadership-icon">👑</span> ${game.gameState.leadershipScore}`;
+            document.getElementById('mobile-leadership-display').textContent = game.gameState.leadershipScore;
             
             foodValue.textContent = Math.floor(game.gameState.resources.food);
             waterValue.textContent = Math.floor(game.gameState.resources.water);
