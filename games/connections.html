@@ -922,14 +922,36 @@
             if (success) {
                 showMessage(`Game loaded from ${slotId === 'auto' ? 'autosave' : 'slot ' + slotId}`, 'success');
                 
-                // Update UI and redraw the game board with the loaded game state
+                // Update UI
                 updateUI();
-                startNewLevel();  // Re-generate the level with the loaded data
+                
+                // Render the loaded level words
+                renderCurrentLevel();
+                
+                // Enable submit button if needed
+                document.getElementById('submitBtn').disabled = true;
+                selectedWords.clear();
             } else {
                 showMessage('Failed to load game', 'error');
             }
         }
         
+        function renderCurrentLevel() {
+            const grid = document.getElementById('wordGrid');
+            grid.innerHTML = '';
+            
+            // Use the loaded level words
+            game.levelWords.forEach(wordObj => {
+                const button = document.createElement('button');
+                button.className = `word-button difficulty-${wordObj.difficulty}`;
+                button.textContent = wordObj.word;
+                button.addEventListener('click', () => handleWordClick(button, wordObj));
+                grid.appendChild(button);
+            });
+            
+            document.getElementById('nextLevelBtn').style.display = 'none';
+        }
+
         function deleteSaveSlot(slotId) {
             const success = deleteSave(slotId);
             if (success) {
