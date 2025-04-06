@@ -802,6 +802,32 @@
             updatePopulationHistory(game.gameState.resources.people);
         }
         
+        function updatePopulationHistory(currentPopulation) {
+            // Store the population data
+            populationHistory.push(currentPopulation);
+            
+            // Clear the container
+            populationHistoryContainer.innerHTML = '';
+            
+            // Get the maximum population for scaling
+            const maxPopulation = Math.max(...populationHistory, 1);
+            
+            // Create bars for each day's population
+            populationHistory.forEach((pop, index) => {
+                const bar = document.createElement('div');
+                bar.className = 'population-bar';
+                
+                // Set height proportionally to the maximum (max height is 100px)
+                const heightPercentage = (pop / maxPopulation) * 100;
+                bar.style.height = `${heightPercentage}%`;
+                
+                // Add tooltip with day and population
+                bar.setAttribute('data-tooltip', `Day ${index + 1}: ${pop} people`);
+                
+                populationHistoryContainer.appendChild(bar);
+            });
+        }
+        
         function updateSurvivorsList() {
             // Clear current list except for the player
             while (survivorList.children.length > 1) {
