@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sudoku Game</title>
+  <!-- PWA Meta Tags -->
+  <meta name="description" content="A classic Sudoku puzzle game - solve the number grid">
+  <meta name="theme-color" content="#4285f4">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/icon-192x192.svg">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <!-- End PWA Meta Tags -->
+  <style>
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+    }
+
+    h1 {
+      font-weight: 600;
+      letter-spacing: -0.5px;
+      color: var(--text-color);
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    #game-container {
+      background-color: var(--container-bg);
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .controls {
+      margin: 20px 0;
+    }
+
+    .button {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-weight: 600;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.1s;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      margin: 0 5px;
+    }
+
+    #newGameBtn, #checkBtn {
+      background-color: var(--submit-btn-bg);
+      color: white;
+      border: none;
+    }
+
+    #newGameBtn:hover, #checkBtn:hover {
+      background-color: var(--submit-btn-hover);
+      transform: translateY(-1px);
+    }
+
+    #newGameBtn:active, #checkBtn:active {
+      transform: translateY(1px);
+    }
+
+    #level {
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid var(--button-border);
+      background-color: var(--button-bg);
+      color: var(--text-color);
+      margin-right: 10px;
+    }
+
+    #sudokuTable {
+      margin: 20px auto;
+      border-collapse: collapse;
+      background-color: var(--container-bg);
+    }
+
+    #sudokuTable td {
+      width: 40px;
+      height: 40px;
+      border: 1px solid var(--button-border);
+      padding: 0;
+      text-align: center;
+      position: relative;
+    }
+
+    /* Add thicker borders to separate 3x3 boxes */
+    #sudokuTable tr:nth-child(3n) td {
+      border-bottom: 2px solid var(--text-color);
+    }
+
+    #sudokuTable tr td:nth-child(3n) {
+      border-right: 2px solid var(--text-color);
+    }
+
+    #sudokuTable tr:first-child td {
+      border-top: 2px solid var(--text-color);
+    }
+
+    #sudokuTable tr td:first-child {
+      border-left: 2px solid var(--text-color);
+    }
+
+    #sudokuTable input {
+      width: 100%;
+      height: 100%;
+      border: none;
+      text-align: center;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-size: 18px;
+      font-weight: bold;
+      background-color: transparent;
+      color: var(--text-color);
+      cursor: pointer;
+    }
+
+    #sudokuTable input:disabled {
+      color: var(--text-color);
+      background-color: var(--button-selected);
+    }
+
+    #sudokuTable input:focus {
+      outline: none;
+      background-color: var(--button-selected);
+    }
+
+    .message {
+      font-weight: 500;
+      margin: 10px auto;
+      padding: 15px;
+      border-radius: 8px;
+      font-size: 16px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      width: calc(100% - 30px);
+      max-width: 600px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      text-align: center;
+      box-sizing: border-box;
+    }
+
+    .message.error {
+      background-color: #ffebee;
+      color: #c62828;
+      border: 1px solid #ffcdd2;
+    }
+
+    .message.success {
+      background-color: #e8f5e9;
+      color: #2e7d32;
+      border: 1px solid #c8e6c9;
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 10px;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      border: none;
+      background: var(--button-bg);
+      color: var(--text-color);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .home-btn {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      padding: 10px;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      border: none;
+      background: var(--button-bg);
+      color: var(--text-color);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      text-decoration: none;
+      font-size: 22px;
+    }
+
+    @media (max-width: 480px) {
+      #sudokuTable td {
+        width: 30px;
+        height: 30px;
+      }
+
+      #sudokuTable input {
+        font-size: 16px;
+      }
+
+      .button {
+        padding: 8px 16px;
+        font-size: 14px;
+      }
+    }
+
+    :root {
+      --bg-color: #f0f0f0;
+      --container-bg: #ffffff;
+      --text-color: #333333;
+      --button-bg: #ffffff;
+      --button-border: #dddddd;
+      --button-selected: #e3f2fd;
+      --button-selected-border: #2196f3;
+      --submit-btn-bg: #2e7d32;
+      --submit-btn-hover: #1b5e20;
+    }
+
+    [data-theme="dark"] {
+      --bg-color: #1a1a1a;
+      --container-bg: #2d2d2d;
+      --text-color: #ffffff;
+      --button-bg: #3d3d3d;
+      --button-border: #4d4d4d;
+      --button-selected: #1e3a5f;
+      --button-selected-border: #2196f3;
+      --submit-btn-bg: #43a047;
+      --submit-btn-hover: #388e3c;
+    }
+  </style>
+</head>
+<body>
+  <button id="themeToggle" class="theme-toggle" aria-label="Toggle dark mode">
+    🌓
+  </button>
+  <a href="/" class="home-btn" aria-label="Go to home page">
+    🏠
+  </a>
+  <div id="game-container">
+    <h1>Sudoku Game</h1>
+    <div class="controls">
+      <label for="level">Select Difficulty:</label>
+      <select id="level">
+        <option value="easy">Easy</option>
+        <option value="medium">Medium</option>
+        <option value="hard">Hard</option>
+      </select>
+      <button id="newGameBtn" class="button">New Game</button>
+      <button id="checkBtn" class="button">Check Solution</button>
+    </div>
+    <div id="message" class="message"></div>
+    <table id="sudokuTable"></table>
+  </div>
+
+  <script type="module">
+    import { SudokuGame } from '/connections/sudoku.js';
+    
+    const game = new SudokuGame();
+    let board = [];
+
+    function showMessage(text, type) {
+      const messageDiv = document.getElementById('message');
+      messageDiv.textContent = text;
+      messageDiv.className = `message ${type}`;
+      messageDiv.style.opacity = '1';
+      setTimeout(() => {
+        messageDiv.style.opacity = '0';
+      }, 3000);
+    }
+
+    // Draw the board in an HTML table
+    function drawBoard() {
+      const table = document.getElementById('sudokuTable');
+      table.innerHTML = '';
+      for (let i = 0; i < 9; i++) {
+        const rowElement = document.createElement('tr');
+        for (let j = 0; j < 9; j++) {
+          const cellElement = document.createElement('td');
+          const input = document.createElement('input');
+          input.setAttribute('type', 'text');
+          input.setAttribute('maxlength', '1');
+          input.setAttribute('inputmode', 'numeric');
+          input.setAttribute('pattern', '[1-9]');
+          
+          // If the cell has a number, fill it and disable editing
+          if (board[i][j] !== 0) {
+            input.value = board[i][j];
+            input.disabled = true;
+          }
+          
+          // Add event listener to validate input
+          input.addEventListener('input', (e) => {
+            const val = e.target.value;
+            if (val && (val < '1' || val > '9')) {
+              e.target.value = '';
+            }
+          });
+          
+          // Store the cell position as data attributes
+          input.dataset.row = i;
+          input.dataset.col = j;
+          cellElement.appendChild(input);
+          rowElement.appendChild(cellElement);
+        }
+        table.appendChild(rowElement);
+      }
+    }
+
+    // Create a new game with the selected difficulty
+    function newGame() {
+      const level = document.getElementById('level').value;
+      board = game.createPuzzle(level);
+      drawBoard();
+    }
+
+    // Read the current board state from user inputs
+    function readBoardFromInputs() {
+      const inputs = document.querySelectorAll('#sudokuTable input');
+      const userBoard = [];
+      for (let i = 0; i < 9; i++) {
+        userBoard.push([]);
+        for (let j = 0; j < 9; j++) {
+          userBoard[i].push(0);
+        }
+      }
+      
+      inputs.forEach(input => {
+        const row = parseInt(input.dataset.row);
+        const col = parseInt(input.dataset.col);
+        const val = parseInt(input.value);
+        if (!isNaN(val)) {
+          userBoard[row][col] = val;
+        }
+      });
+      
+      return userBoard;
+    }
+
+    // Check if the user's solution is complete and valid
+    function checkSolution() {
+      const userBoard = readBoardFromInputs();
+      const result = game.checkSolution(userBoard);
+      
+      if (result.complete && result.valid) {
+        showMessage('Congratulations! You solved the puzzle.', 'success');
+      } else if (!result.complete) {
+        showMessage('The puzzle is incomplete. Fill in all the cells.', 'error');
+      } else {
+        showMessage('The solution is incorrect. Check for errors.', 'error');
+      }
+    }
+
+    // Set up event listeners for the game buttons
+    document.getElementById('newGameBtn').addEventListener('click', newGame);
+    document.getElementById('checkBtn').addEventListener('click', checkSolution);
+
+    // Theme toggle functionality
+    const themeToggle = document.getElementById('themeToggle');
+    const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    
+    // Set initial theme based on user preference
+    if (prefersDarkScheme.matches) {
+      document.body.setAttribute('data-theme', 'dark');
+    }
+
+    themeToggle.addEventListener('click', () => {
+      const currentTheme = document.body.getAttribute('data-theme');
+      if (currentTheme === 'dark') {
+        document.body.removeAttribute('data-theme');
+      } else {
+        document.body.setAttribute('data-theme', 'dark');
+      }
+    });
+
+    // Initialize the game with a default puzzle on page load
+    window.onload = function() {
+      newGame();
+    };
+  </script>
+</body>
+</html>
