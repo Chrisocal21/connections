@@ -1,24 +1,14 @@
 {
   "version": 2,
   "builds": [
-    {
-      "src": "server.js",
-      "use": "@vercel/node@2.15.8"
-    }
+    { "src": "server.js", "use": "@vercel/node@2.15.8" },
+    { "src": "**/*.html", "use": "@vercel/static" }
   ],
   "routes": [
-    {
-      "src": "/connections",
-      "dest": "/games/connections.html"
-    },
-    {
-      "src": "/games/connections",
-      "dest": "/connections"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/server.js"
-    }
+    { "src": "/connections", "dest": "server.js" },
+    { "src": "/games/connections", "dest": "server.js" },
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "server.js" }
   ],
   "env": {
     "NODE_VERSION": "18.x"
