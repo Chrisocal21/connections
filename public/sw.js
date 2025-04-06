@@ -1,13 +1,14 @@
 // filepath: d:\dev\games\connections\public\sw.js
 // Service Worker for Connections Game - enabling offline play
 
-const CACHE_NAME = 'connections-game-v2'; // Updated version
+const CACHE_NAME = 'connections-game-v3'; // Updated version
 const CACHE_FILES = [
   '/',
   '/index.html',
   '/games/connections.html',
   '/connections/gameLogic.js',
   '/connections/wordBank.js',
+  '/connections/saveSystem.js',
   '/manifest.json',
   '/icons/icon-192x192.svg'
 ];

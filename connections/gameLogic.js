@@ -1,4 +1,4 @@
-import { saveGame, loadGame, startAutosave, stopAutosave } from './saveSystem.js';
+import { saveGame, loadGame, startAutosave, stopAutosave } from '/connections/saveSystem.js';
 
 // Copy of gameLogic.js in the connections directory
 export class GameLogic {
