@@ -1,22 +1,23 @@
 {
   "version": 2,
-  "functions": {
-    "server.js": {
-      "runtime": "@vercel/node"
+  "builds": [
+    {
+      "src": "server.js",
+      "use": "@vercel/node@2.15.8"
     }
-  },
-  "rewrites": [
+  ],
+  "routes": [
     {
-      "source": "/connections",
-      "destination": "/games/connections.html"
+      "src": "/connections",
+      "dest": "/games/connections.html"
     },
     {
-      "source": "/games/connections",
-      "destination": "/connections"
+      "src": "/games/connections",
+      "dest": "/connections"
     },
     {
-      "source": "/(.*)",
-      "destination": "/server.js"
+      "src": "/(.*)",
+      "dest": "/server.js"
     }
   ]
 }
