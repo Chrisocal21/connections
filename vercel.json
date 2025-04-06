@@ -4,11 +4,15 @@
     { "src": "server.js", "use": "@vercel/node@2.15.8" },
     { "src": "connections/*.js", "use": "@vercel/static" },
     { "src": "games/*.html", "use": "@vercel/static" },
-    { "src": "*.html", "use": "@vercel/static" }
+    { "src": "*.html", "use": "@vercel/static" },
+    { "src": "public/**/*", "use": "@vercel/static" }
   ],
   "routes": [
     { "src": "/connections/wordBank.js", "dest": "/connections/wordBank.js" },
     { "src": "/connections/gameLogic.js", "dest": "/connections/gameLogic.js" },
+    { "src": "/sw.js", "dest": "/public/sw.js" },
+    { "src": "/manifest.json", "dest": "/public/manifest.json" },
+    { "src": "/icons/(.*)", "dest": "/public/icons/$1" },
     { "src": "/connections", "dest": "/server.js" },
     { "src": "/games/connections", "dest": "/server.js" },
     { "handle": "filesystem" },

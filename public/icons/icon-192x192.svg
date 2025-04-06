@@ -1,0 +1,6 @@
+<!-- This is a placeholder SVG icon for the PWA -->
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <rect width="192" height="192" fill="#4285f4" />
+  <text x="96" y="106" fill="white" font-size="115" font-weight="bold" text-anchor="middle">C</text>
+  <rect x="19.2" y="19.2" width="153.6" height="153.6" stroke="white" stroke-width="9.6" fill="none" />
+</svg>
