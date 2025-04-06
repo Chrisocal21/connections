@@ -9,8 +9,11 @@ const __dirname = dirname(__filename);
 const app = express();
 const port = 3000;
 
-// Serve static files from the root directory
-app.use(express.static(__dirname));
+// Serve static files from the root directory (except HTML files)
+app.use(express.static(__dirname, {
+  index: false,  // Disable automatic serving of index.html
+  extensions: ['js', 'css', 'png', 'jpg', 'jpeg', 'gif', 'svg']
+}));
 
 // Home page route (landing page with game selection)
 app.get('/', (req, res) => {
@@ -24,7 +27,7 @@ app.get('/games/connections', (req, res) => {
 
 // Keep the old route for backward compatibility
 app.get('/index.html', (req, res) => {
-  res.redirect('/games/connections');
+  res.redirect('/');
 });
 
 // Add routes for future games here
