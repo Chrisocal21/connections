@@ -1,17 +1,15 @@
 // filepath: d:\dev\games\connections\public\sw.js
 // Service Worker for Connections Game - enabling offline play
 
-const CACHE_NAME = 'connections-game-v1';
+const CACHE_NAME = 'connections-game-v2'; // Updated version
 const CACHE_FILES = [
   '/',
   '/index.html',
   '/games/connections.html',
   '/connections/gameLogic.js',
-  '/connections/saveSystem.js',
   '/connections/wordBank.js',
-  '/js/gameLogic.js',
-  '/css/main.css',
-  '/js/games/connections/main.js'
+  '/manifest.json',
+  '/icons/icon-192x192.svg'
 ];
 
 // Install event - cache the files needed for offline play
@@ -20,7 +18,12 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME)
       .then((cache) => {
         console.log('Opened cache');
-        return cache.addAll(CACHE_FILES);
+        return cache.addAll(CACHE_FILES)
+          .catch(error => {
+            console.error('Cache addAll error:', error);
+            // Continue with whatever files were successfully cached
+            return;
+          });
       })
   );
 });
@@ -58,6 +61,11 @@ self.addEventListener('fetch', (event) => {
       .catch(() => {
         // If both cache and network fail, show an offline page or handle gracefully
         console.log('Fetch failed - network and cache unavailable');
+        
+        // Return a fallback for HTML pages if we have it
+        if (event.request.headers.get('accept').includes('text/html')) {
+          return caches.match('/index.html');
+        }
       })
   );
 });
@@ -78,4 +86,7 @@ self.addEventListener('activate', (event) => {
       );
     })
   );
+  
+  // Immediately claim all clients so the new service worker takes over right away
+  return self.clients.claim();
 });
