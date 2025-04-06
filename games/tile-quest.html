@@ -32,10 +32,13 @@
             margin-bottom: 30px;
         }
 
+        /* New responsive board styles */
         #board {
             display: grid;
-            gap: 5px;
+            gap: 8px;
             margin-bottom: 20px;
+            width: 100%;
+            max-width: 500px; /* Cap maximum size */
         }
 
         .tile {
@@ -45,12 +48,13 @@
             background-color: var(--button-bg);
             border: 2px solid var(--button-border);
             color: var(--text-color);
-            font-size: 24px;
             font-weight: bold;
             cursor: pointer;
             user-select: none;
             transition: all 0.2s ease-in-out;
             border-radius: 8px;
+            aspect-ratio: 1 / 1; /* Ensure tiles stay square */
+            width: 100%;
         }
 
         .tile:hover:not(.empty) {
@@ -234,19 +238,90 @@
             color: var(--text-color);
         }
 
-        @media (max-width: 480px) {
-            .level-btn {
-                width: 60px;
-                height: 60px;
-                font-size: 16px;
-            }
+        /* Level selection responsive styles */
+        .level-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 500px;
+        }
 
+        .level-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--button-bg);
+            border: 2px solid var(--button-border);
+            color: var(--text-color);
+            font-size: clamp(16px, 3vw, 20px);
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s ease-in-out;
+            border-radius: 8px;
+            flex-direction: column;
+            aspect-ratio: 1 / 1;
+            width: 100%;
+        }
+
+        /* Media queries for responsive design */
+        @media (max-width: 480px) {
             .game-container {
                 padding: 15px;
+                width: 95%;
             }
 
             h1 {
                 font-size: 24px;
+            }
+            
+            .level-grid-size {
+                font-size: 12px;
+            }
+            
+            .stats {
+                font-size: 16px;
+            }
+            
+            button {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 350px) {
+            .game-container {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 20px;
+                margin-bottom: 15px;
+            }
+            
+            h2 {
+                font-size: 18px;
+            }
+            
+            .level-grid-size {
+                font-size: 10px;
+            }
+            
+            .stats {
+                font-size: 14px;
+            }
+        }
+
+        @media (min-width: 768px) {
+            #board {
+                max-width: 600px;
+            }
+            
+            .level-container {
+                max-width: 600px;
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
             }
         }
     </style>
@@ -397,23 +472,28 @@
             tiles.push(null); // Empty tile
             
             // Set board grid layout based on level
-            board.style.gridTemplateColumns = `repeat(${gridSize}, ${100/gridSize}px)`;
-            board.style.gridTemplateRows = `repeat(${gridSize}, ${100/gridSize}px)`;
+            board.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+            board.style.gridTemplateRows = `repeat(${gridSize}, 1fr)`;
             
             renderBoard();
         }
 
         function renderBoard() {
             board.innerHTML = '';
+            
+            // Calculate font size based on grid size and viewport width
+            const fontSize = Math.min(
+                24 * (3/gridSize), // Base calculation
+                window.innerWidth * 0.08 * (3/gridSize) // Responsive adjustment
+            );
+            
             tiles.forEach((val, index) => {
                 const tile = document.createElement('div');
                 tile.className = 'tile';
                 tile.dataset.index = index;
                 
-                // Set tile size based on grid size
-                tile.style.width = `${100/gridSize}px`;
-                tile.style.height = `${100/gridSize}px`;
-                tile.style.fontSize = `${24 * (3/gridSize)}px`;
+                // No need to set explicit width/height - CSS handles it with aspect-ratio
+                tile.style.fontSize = `${fontSize}px`;
                 
                 if (val === null) {
                     tile.classList.add('empty');
@@ -522,6 +602,38 @@
         // Initialize game
         loadProgress();
         generateLevelSelection();
+        
+        // Handle window resize events to adjust the board dynamically
+        window.addEventListener('resize', () => {
+            if (gameSection.style.display !== 'none') {
+                renderBoard(); // Re-render the board on resize to adjust tile sizes
+            }
+        });
+        
+        // Initial orientation detection and handling
+        function handleOrientationChange() {
+            if (gameSection.style.display !== 'none') {
+                const isLandscape = window.innerWidth > window.innerHeight;
+                
+                // In landscape mode on small screens, we may want to adjust the layout
+                if (isLandscape && window.innerWidth < 768) {
+                    // Ensure board doesn't get too tall in landscape on phones
+                    board.style.maxHeight = '70vh';
+                } else {
+                    board.style.maxHeight = '';
+                }
+                
+                // Rerender board to adjust font sizes
+                renderBoard();
+            }
+        }
+        
+        // Listen for orientation changes
+        window.addEventListener('orientationchange', handleOrientationChange);
+        window.addEventListener('resize', handleOrientationChange);
+        
+        // Initial orientation check
+        handleOrientationChange();
     </script>
 </body>
 </html>
