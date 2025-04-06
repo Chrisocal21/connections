@@ -2,18 +2,18 @@
   "version": 2,
   "buildCommand": "npm run build",
   "installCommand": "npm install",
-  "routes": [
+  "rewrites": [
     {
-      "src": "/connections",
-      "dest": "/games/connections.html"
+      "source": "/connections",
+      "destination": "/games/connections.html"
     },
     {
-      "src": "/games/connections",
-      "dest": "/connections"
+      "source": "/games/connections",
+      "destination": "/connections"
     },
     {
-      "src": "/(.*)",
-      "dest": "/server.js"
+      "source": "/(.*)",
+      "destination": "/server.js"
     }
   ]
 }
