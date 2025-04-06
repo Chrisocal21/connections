@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RECLAIMED</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #EEE;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 50px;
+            background-image: radial-gradient(circle at center, #1a1a1a 0%, #0a0a0a 100%);
+        }
+        h1 {
+            margin-top: 30px;
+            font-size: 2.5em;
+            text-shadow: 0 0 10px rgba(100, 217, 255, 0.3);
+            letter-spacing: 2px;
+        }
+        p {
+            font-size: 1.2em;
+            max-width: 600px;
+            margin: 20px auto;
+            line-height: 1.6;
+        }
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: #EEE;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background 0.3s ease;
+        }
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        #game-container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: rgba(30, 30, 30, 0.7);
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        #game-status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: rgba(0, 0, 0, 0.3);
+            font-style: italic;
+        }
+        .resources {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        .resource {
+            padding: 10px 20px;
+            margin: 10px;
+            border-radius: 5px;
+            background-color: rgba(40, 40, 40, 0.8);
+            min-width: 120px;
+        }
+        .resource-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-top: 5px;
+            color: #64D9FF;
+        }
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin: 25px 0;
+        }
+        button {
+            background: #1E3A5F;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: #2A5795;
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            background: #2A3A47;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        .event-log {
+            margin-top: 30px;
+            text-align: left;
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+        }
+        .event-entry {
+            padding: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .event-entry:last-child {
+            border-bottom: none;
+        }
+        .day-counter {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(30, 58, 95, 0.8);
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .leadership-badge {
+            position: absolute;
+            top: 70px;
+            right: 20px;
+            background: rgba(95, 30, 75, 0.8);
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+        .leadership-icon {
+            margin-right: 8px;
+        }
+        .tab-container {
+            margin: 20px 0;
+        }
+        .tab-buttons {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        .tab-button {
+            background: rgba(30, 30, 30, 0.7);
+            color: #EEE;
+            border: none;
+            padding: 8px 15px;
+            margin: 0 5px;
+            border-radius: 4px 4px 0 0;
+            cursor: pointer;
+        }
+        .tab-button.active {
+            background: #1E3A5F;
+        }
+        .tab-content {
+            display: none;
+            padding: 15px;
+            background-color: rgba(30, 30, 30, 0.7);
+            border-radius: 0 0 5px 5px;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .survivor-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .survivor-card {
+            background-color: rgba(40, 40, 40, 0.8);
+            border-radius: 5px;
+            padding: 15px;
+            text-align: left;
+        }
+        .survivor-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #64D9FF;
+        }
+        .survivor-skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        .survivor-skill {
+            background-color: rgba(100, 217, 255, 0.2);
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.8em;
+        }
+        .story-progress {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px 0;
+        }
+        .story-phase {
+            display: flex;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .phase-marker {
+            flex: 1;
+            height: 6px;
+            background-color: rgba(100, 100, 100, 0.3);
+            margin: 0 2px;
+        }
+        .phase-marker.active {
+            background-color: #64D9FF;
+        }
+        .phase-label {
+            font-size: 0.8em;
+            color: #999;
+            margin-top: 5px;
+        }
+        .discovery-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .discovery-item {
+            background-color: rgba(40, 40, 40, 0.8);
+            border-radius: 5px;
+            padding: 15px;
+            text-align: left;
+        }
+        .discovery-title {
+            font-weight: bold;
+            color: #64D9FF;
+            margin-bottom: 5px;
+        }
+        .warning-indicator {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(255, 50, 50, 0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .canvas-container {
+            margin: 15px auto;
+            border: 1px solid #444;
+            background-color: rgba(20, 20, 20, 0.5);
+            border-radius: 5px;
+        }
+        .canvas-container canvas {
+            max-width: 100%;
+        }
+        .visualization-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        .visualization-toggle {
+            background: rgba(30, 30, 30, 0.7);
+            color: #EEE;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .visualization-toggle.active {
+            background: #1E3A5F;
+        }
+        .settlement-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .settlement-card {
+            background-color: rgba(40, 40, 40, 0.8);
+            border-radius: 5px;
+            padding: 15px;
+            text-align: left;
+        }
+        .building-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            text-align: left;
+        }
+        .building-item {
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .building-count {
+            float: right;
+            font-weight: bold;
+            color: #64D9FF;
+        }
+        .population-history {
+            display: flex;
+            align-items: flex-end;
+            height: 100px;
+            gap: 2px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        .population-bar {
+            flex: 1;
+            background-color: rgba(238, 108, 77, 0.5);
+            min-width: 10px;
+            transition: height 0.5s;
+            position: relative;
+        }
+        .population-bar:hover:after {
+            content: attr(data-tooltip);
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+    <a href="/" class="back-button">← Back</a>
+    <div class="day-counter" id="day-display">Day 1</div>
+    <div class="leadership-badge" id="leadership-display"><span class="leadership-icon">👑</span> Leadership: 0</div>
+    
+    <h1>RECLAIMED</h1>
+    <p>After The Quiet Reset, a silent world awaits…</p>
+    
+    <div id="game-container">
+        <div id="game-status">You wake from cryosleep. The world is silent. Your pod is one of few that survived.</div>
+        
+        <div class="resources">
+            <div class="resource">
+                <div>Food</div>
+                <div class="resource-value" id="food-value">10</div>
+            </div>
+            <div class="resource">
+                <div>Water</div>
+                <div class="resource-value" id="water-value">15</div>
+            </div>
+            <div class="resource">
+                <div>Materials</div>
+                <div class="resource-value" id="materials-value">5</div>
+            </div>
+            <div class="resource">
+                <div>People</div>
+                <div class="resource-value" id="people-value">3</div>
+            </div>
+        </div>
+        
+        <div class="action-buttons">
+            <button id="scavenge-btn">Scavenge for Resources</button>
+            <button id="build-btn">Build Shelter</button>
+            <button id="explore-btn">Explore Area</button>
+            <button id="next-day-btn">Next Day</button>
+        </div>
+        
+        <div class="tab-container">
+            <div class="tab-buttons">
+                <button class="tab-button active" data-tab="events">Events</button>
+                <button class="tab-button" data-tab="survivors">Survivors</button>
+                <button class="tab-button" data-tab="story">Story</button>
+                <button class="tab-button" data-tab="map">Map</button>
+                <button class="tab-button" data-tab="analytics">Analytics</button>
+                <button class="tab-button" data-tab="settlement">Settlement</button>
+            </div>
+            
+            <div class="tab-content active" id="events-tab">
+                <div class="event-log" id="event-log">
+                    <div class="event-entry">Day 1: You wake up in a cryopod facility. Most systems have failed. The outside world is unrecognizable.</div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="survivors-tab">
+                <h3>Your Community</h3>
+                <div class="survivor-list" id="survivor-list">
+                    <div class="survivor-card">
+                        <div class="survivor-name">You (Leader)</div>
+                        <div class="survivor-detail">Awakened from cryosleep on Day 1</div>
+                        <div class="survivor-skills">
+                            <div class="survivor-skill">Leadership</div>
+                            <div class="survivor-skill">Adaptability</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="story-tab">
+                <div class="story-progress">
+                    <div class="story-phase">
+                        <div class="phase-marker active" id="phase-awakening"></div>
+                        <div class="phase-marker" id="phase-survival"></div>
+                        <div class="phase-marker" id="phase-expansion"></div>
+                        <div class="phase-marker" id="phase-revelation"></div>
+                    </div>
+                    <div class="phase-label" id="phase-label">Phase: Awakening</div>
+                </div>
+                
+                <h3>Discoveries</h3>
+                <div class="discovery-list" id="discovery-list">
+                    <!-- Discoveries will be added here -->
+                </div>
+            </div>
+            
+            <div class="tab-content" id="map-tab">
+                <h3>Territory Map</h3>
+                <p class="tab-description">Your settlement's territory and surroundings. Explore to reveal more of the map.</p>
+                
+                <div class="canvas-container">
+                    <canvas id="mapCanvas" width="500" height="400"></canvas>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="analytics-tab">
+                <h3>Resource Analytics</h3>
+                <p class="tab-description">Track your resource levels over time to identify trends and plan accordingly.</p>
+                
+                <div class="visualization-controls">
+                    <button class="visualization-toggle active" data-viz="graph">Line Graph</button>
+                    <button class="visualization-toggle" data-viz="bars">Population History</button>
+                </div>
+                
+                <div class="canvas-container viz-container active" id="graph-container">
+                    <canvas id="resourceGraph" width="500" height="300"></canvas>
+                </div>
+                
+                <div class="canvas-container viz-container" id="pop-history-container" style="display: none;">
+                    <h4>Population Growth</h4>
+                    <div class="population-history" id="populationHistory"></div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="settlement-tab">
+                <h3>Settlement Overview</h3>
+                <p class="tab-description">Your settlement's infrastructure and development.</p>
+                
+                <div class="settlement-details">
+                    <div class="settlement-card">
+                        <h4>Buildings</h4>
+                        <ul class="building-list" id="building-list">
+                            <li class="building-item">Shelters <span class="building-count" id="shelter-count">1</span></li>
+                            <li class="building-item">Farms <span class="building-count" id="farm-count">0</span></li>
+                            <li class="building-item">Cisterns <span class="building-count" id="cistern-count">0</span></li>
+                            <li class="building-item">Workshops <span class="building-count" id="workshop-count">0</span></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="settlement-card">
+                        <h4>Statistics</h4>
+                        <div id="settlement-stats">
+                            <p>Days Survived: <span id="days-survived">1</span></p>
+                            <p>People Rescued: <span id="people-rescued">0</span></p>
+                            <p>Explored Area: <span id="explored-area">5%</span></p>
+                            <p>Discoveries Found: <span id="discoveries-count">0</span></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="settlement-card" style="margin-top: 20px;">
+                    <h4>Settlement Actions</h4>
+                    <div class="action-buttons" style="margin-top: 10px;">
+                        <button id="build-farm-btn" disabled>Build Farm (3 materials)</button>
+                        <button id="build-cistern-btn" disabled>Build Cistern (4 materials)</button>
+                        <button id="build-workshop-btn" disabled>Build Workshop (5 materials)</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="warning-indicator" id="warning-indicator">Resources critically low!</div>
+    
+    <script src="/js/games/reclaimed/gameLogic.js"></script>
+    <script src="/js/games/reclaimed/visualizations.js"></script>
+    <script>
+        // Initialize the game
+        let game = new ReclaimedGame();
+        
+        // Initialize visualizations
+        let mapGenerator, resourceGraph;
+        let populationHistory = [];
+        
+        // DOM Elements
+        const dayDisplay = document.getElementById('day-display');
+        const leadershipDisplay = document.getElementById('leadership-display');
+        const gameStatus = document.getElementById('game-status');
+        const foodValue = document.getElementById('food-value');
+        const waterValue = document.getElementById('water-value');
+        const materialsValue = document.getElementById('materials-value');
+        const peopleValue = document.getElementById('people-value');
+        const eventLog = document.getElementById('event-log');
+        const survivorList = document.getElementById('survivor-list');
+        const discoveryList = document.getElementById('discovery-list');
+        const warningIndicator = document.getElementById('warning-indicator');
+        
+        // Phase markers
+        const phaseAwakening = document.getElementById('phase-awakening');
+        const phaseSurvival = document.getElementById('phase-survival');
+        const phaseExpansion = document.getElementById('phase-expansion');
+        const phaseRevelation = document.getElementById('phase-revelation');
+        const phaseLabel = document.getElementById('phase-label');
+        
+        // Buttons
+        const scavengeBtn = document.getElementById('scavenge-btn');
+        const buildBtn = document.getElementById('build-btn');
+        const exploreBtn = document.getElementById('explore-btn');
+        const nextDayBtn = document.getElementById('next-day-btn');
+        
+        // Tab functionality
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        // New element references
+        const mapCanvas = document.getElementById('mapCanvas');
+        const resourceGraphCanvas = document.getElementById('resourceGraph');
+        const populationHistoryContainer = document.getElementById('populationHistory');
+        const visualizationToggles = document.querySelectorAll('.visualization-toggle');
+        const vizContainers = document.querySelectorAll('.viz-container');
+        
+        // Building counts
+        const shelterCount = document.getElementById('shelter-count');
+        const farmCount = document.getElementById('farm-count');
+        const cisternCount = document.getElementById('cistern-count');
+        const workshopCount = document.getElementById('workshop-count');
+        
+        // Settlement stats
+        const daysSurvived = document.getElementById('days-survived');
+        const peopleRescued = document.getElementById('people-rescued');
+        const exploredArea = document.getElementById('explored-area');
+        const discoveriesCount = document.getElementById('discoveries-count');
+        
+        // Building buttons
+        const buildFarmBtn = document.getElementById('build-farm-btn');
+        const buildCisternBtn = document.getElementById('build-cistern-btn');
+        const buildWorkshopBtn = document.getElementById('build-workshop-btn');
+        
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove active class from all buttons and contents
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+                
+                // Add active class to clicked button and corresponding content
+                button.classList.add('active');
+                const tabId = button.getAttribute('data-tab');
+                document.getElementById(`${tabId}-tab`).classList.add('active');
+            });
+        });
+        
+        // Visualization toggle functionality
+        visualizationToggles.forEach(toggle => {
+            toggle.addEventListener('click', () => {
+                visualizationToggles.forEach(t => t.classList.remove('active'));
+                toggle.classList.add('active');
+                
+                const vizType = toggle.getAttribute('data-viz');
+                vizContainers.forEach(container => {
+                    container.style.display = 'none';
+                });
+                
+                if (vizType === 'graph') {
+                    document.getElementById('graph-container').style.display = 'block';
+                } else if (vizType === 'bars') {
+                    document.getElementById('pop-history-container').style.display = 'block';
+                }
+            });
+        });
+        
+        // Initialize visualizations after DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            mapGenerator = new ReclaimedMapGenerator('mapCanvas', game.gameState);
+            resourceGraph = new ReclaimedGraphRenderer('resourceGraph');
+            
+            // Add initial data point for graph
+            resourceGraph.addDataPoint(game.gameState.day, game.gameState.resources);
+            
+            // Initialize population history
+            updatePopulationHistory(game.gameState.resources.people);
+        });
+        
+        // Update UI based on game state
+        function updateUI() {
+            dayDisplay.textContent = `Day ${game.gameState.day}`;
+            leadershipDisplay.innerHTML = `<span class="leadership-icon">👑</span> Leadership: ${game.gameState.leadershipScore}`;
+            
+            foodValue.textContent = Math.floor(game.gameState.resources.food);
+            waterValue.textContent = Math.floor(game.gameState.resources.water);
+            materialsValue.textContent = Math.floor(game.gameState.resources.materials);
+            peopleValue.textContent = game.gameState.resources.people;
+            
+            // Update survivors tab
+            updateSurvivorsList();
+            
+            // Update discoveries tab
+            updateDiscoveriesList();
+            
+            // Update story phase markers
+            updateStoryPhase();
+            
+            // Show warning if resources are critically low
+            if (game.gameState.resources.food <= 1 || game.gameState.resources.water <= 1) {
+                warningIndicator.style.display = 'block';
+                warningIndicator.textContent = `Warning: ${
+                    game.gameState.resources.food <= 1 ? 'Food' : 'Water'
+                } critically low!`;
+            } else {
+                warningIndicator.style.display = 'none';
+            }
+            
+            // Disable buttons if resources are too low
+            if (game.gameState.resources.food <= 0 || game.gameState.resources.water <= 0) {
+                scavengeBtn.disabled = true;
+                buildBtn.disabled = true;
+                exploreBtn.disabled = true;
+                gameStatus.textContent = "Your colony is in critical condition. You need food and water to continue.";
+            } else {
+                scavengeBtn.disabled = false;
+                buildBtn.disabled = game.gameState.resources.materials < 2;
+                exploreBtn.disabled = false;
+            }
+            
+            // After day 5, update UI to indicate more challenging gameplay
+            if (game.gameState.day > 5 && game.gameState.day < 8) {
+                gameStatus.innerHTML += "<br><small>The world is becoming more challenging as resources grow scarce and others fight to survive...</small>";
+            }
+            
+            // Update building counts
+            shelterCount.textContent = game.gameState.buildings.shelters;
+            farmCount.textContent = game.gameState.buildings.farms;
+            cisternCount.textContent = game.gameState.buildings.cisterns;
+            workshopCount.textContent = game.gameState.buildings.workshops;
+            
+            // Update settlement stats
+            daysSurvived.textContent = game.gameState.day;
+            peopleRescued.textContent = game.gameState.survivors.length;
+            exploredArea.textContent = Math.min(100, Math.floor(5 + (game.gameState.day * 3))) + '%';
+            discoveriesCount.textContent = game.gameState.discoveries.length;
+            
+            // Update building buttons
+            buildFarmBtn.disabled = game.gameState.resources.materials < 3;
+            buildCisternBtn.disabled = game.gameState.resources.materials < 4;
+            buildWorkshopBtn.disabled = game.gameState.resources.materials < 5;
+            
+            // Update visualizations
+            if (mapGenerator && game.gameState.day > 1) {
+                mapGenerator.updateMap(game.gameState);
+            }
+            
+            if (resourceGraph && game.gameState.day > 1) {
+                resourceGraph.addDataPoint(game.gameState.day, game.gameState.resources);
+            }
+            
+            // Update population history
+            updatePopulationHistory(game.gameState.resources.people);
+        }
+        
+        function updateSurvivorsList() {
+            // Clear current list except for the player
+            while (survivorList.children.length > 1) {
+                survivorList.removeChild(survivorList.lastChild);
+            }
+            
+            // Add each survivor
+            game.gameState.survivors.forEach(survivor => {
+                const survivorCard = document.createElement('div');
+                survivorCard.className = 'survivor-card';
+                
+                const nameElement = document.createElement('div');
+                nameElement.className = 'survivor-name';
+                nameElement.textContent = survivor.type;
+                
+                const detailElement = document.createElement('div');
+                detailElement.className = 'survivor-detail';
+                detailElement.textContent = survivor.backstory;
+                
+                const joinedElement = document.createElement('div');
+                joinedElement.className = 'survivor-joined';
+                joinedElement.textContent = `Joined on Day ${survivor.joinedDay}`;
+                
+                const skillsElement = document.createElement('div');
+                skillsElement.className = 'survivor-skills';
+                
+                survivor.skills.forEach(skill => {
+                    const skillBadge = document.createElement('div');
+                    skillBadge.className = 'survivor-skill';
+                    skillBadge.textContent = skill;
+                    skillsElement.appendChild(skillBadge);
+                });
+                
+                survivorCard.appendChild(nameElement);
+                survivorCard.appendChild(detailElement);
+                survivorCard.appendChild(joinedElement);
+                survivorCard.appendChild(skillsElement);
+                
+                survivorList.appendChild(survivorCard);
+            });
+        }
+        
+        function updateDiscoveriesList() {
+            // Clear current list
+            discoveryList.innerHTML = '';
+            
+            // Add each discovery
+            game.gameState.discoveries.forEach(discovery => {
+                const discoveryItem = document.createElement('div');
+                discoveryItem.className = 'discovery-item';
+                
+                const titleElement = document.createElement('div');
+                titleElement.className = 'discovery-title';
+                titleElement.textContent = discovery.title;
+                
+                const dayElement = document.createElement('div');
+                dayElement.className = 'discovery-day';
+                dayElement.textContent = discovery.day ? `Found: Day ${discovery.day}` : '';
+                
+                const contentElement = document.createElement('div');
+                contentElement.className = 'discovery-content';
+                contentElement.textContent = discovery.content;
+                
+                discoveryItem.appendChild(titleElement);
+                discoveryItem.appendChild(dayElement);
+                discoveryItem.appendChild(contentElement);
+                
+                discoveryList.appendChild(discoveryItem);
+            });
+            
+            // If no discoveries yet
+            if (game.gameState.discoveries.length === 0) {
+                const emptyMessage = document.createElement('div');
+                emptyMessage.textContent = 'No discoveries yet. Explore to learn more about The Quiet Reset.';
+                emptyMessage.style.fontStyle = 'italic';
+                discoveryList.appendChild(emptyMessage);
+            }
+        }
+        
+        function updateStoryPhase() {
+            // Reset all phases
+            phaseAwakening.classList.remove('active');
+            phaseSurvival.classList.remove('active');
+            phaseExpansion.classList.remove('active');
+            phaseRevelation.classList.remove('active');
+            
+            // Set active phases based on current phase
+            switch(game.gameState.storyPhase) {
+                case 'awakening':
+                    phaseAwakening.classList.add('active');
+                    phaseLabel.textContent = 'Phase: Awakening';
+                    break;
+                case 'survival':
+                    phaseAwakening.classList.add('active');
+                    phaseSurvival.classList.add('active');
+                    phaseLabel.textContent = 'Phase: Survival';
+                    break;
+                case 'expansion':
+                    phaseAwakening.classList.add('active');
+                    phaseSurvival.classList.add('active');
+                    phaseExpansion.classList.add('active');
+                    phaseLabel.textContent = 'Phase: Expansion';
+                    break;
+                case 'revelation':
+                    phaseAwakening.classList.add('active');
+                    phaseSurvival.classList.add('active');
+                    phaseExpansion.classList.add('active');
+                    phaseRevelation.classList.add('active');
+                    phaseLabel.textContent = 'Phase: Revelation';
+                    break;
+            }
+        }
+        
+        // Add event to log
+        function logEvent(message) {
+            const eventEntry = document.createElement('div');
+            eventEntry.className = 'event-entry';
+            eventEntry.textContent = `Day ${game.gameState.day}: ${message}`;
+            eventLog.prepend(eventEntry);
+        }
+        
+        // Action: Scavenge for resources
+        scavengeBtn.addEventListener('click', () => {
+            const foodFound = Math.floor(Math.random() * 4);
+            const waterFound = Math.floor(Math.random() * 5);
+            const materialsFound = Math.floor(Math.random() * 3);
+            
+            game.gameState.resources.food += foodFound;
+            game.gameState.resources.water += waterFound;
+            game.gameState.resources.materials += materialsFound;
+            
+            gameStatus.textContent = `You found some supplies while scavenging!`;
+            logEvent(`Found ${foodFound} food, ${waterFound} water, and ${materialsFound} materials while scavenging.`);
+            
+            updateUI();
+        });
+        
+        // Action: Build shelter
+        buildBtn.addEventListener('click', () => {
+            if (game.gameState.resources.materials >= 2) {
+                game.gameState.resources.materials -= 2;
+                game.gameState.buildings.shelters += 1;
+                
+                gameStatus.textContent = "You've improved your shelter!";
+                logEvent("Built additional shelter, increasing safety and capacity.");
+                
+                updateUI();
+            }
+        });
+        
+        // Action: Explore area
+        exploreBtn.addEventListener('click', () => {
+            const result = game.explore();
+            
+            gameStatus.textContent = result.message;
+            logEvent(result.message);
+            
+            updateUI();
+        });
+        
+        // Action: Next day
+        nextDayBtn.addEventListener('click', () => {
+            // Advance to next day
+            game.advanceDay();
+            
+            // Get latest event
+            let latestEvent = game.gameState.events[game.gameState.events.length - 1];
+            
+            if (latestEvent && latestEvent.day === game.gameState.day) {
+                gameStatus.textContent = latestEvent.text;
+                logEvent(latestEvent.text);
+            } else {
+                gameStatus.textContent = `Day ${game.gameState.day} begins. Your small community survives another day.`;
+                logEvent("Another day passes in the silent world.");
+            }
+            
+            updateUI();
+        });
+        
+        // New building action handlers
+        buildFarmBtn.addEventListener('click', () => {
+            if (game.buildStructure('farm')) {
+                gameStatus.textContent = "You've built a new farm! This will increase your food production.";
+                logEvent("Built a farm to increase sustainable food production.");
+                updateUI();
+            }
+        });
+        
+        buildCisternBtn.addEventListener('click', () => {
+            if (game.buildStructure('cistern')) {
+                gameStatus.textContent = "You've built a cistern! This will help collect and purify water.";
+                logEvent("Built a cistern to improve water collection and storage.");
+                updateUI();
+            }
+        });
+        
+        buildWorkshopBtn.addEventListener('click', () => {
+            if (game.buildStructure('workshop')) {
+                gameStatus.textContent = "You've built a workshop! This will help produce materials and tools.";
+                logEvent("Built a workshop to manufacture tools and process materials.");
+                updateUI();
+            }
+        });
+        
+        // Initialize UI
+        updateUI();
+    </script>
+</body>
+</html>
