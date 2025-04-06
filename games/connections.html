@@ -283,6 +283,74 @@
             cursor: pointer;
         }
 
+        /* Save system styles */
+        .save-load-container {
+            margin: 15px auto;
+            padding: 10px;
+            background-color: var(--bg-color);
+            border-radius: 8px;
+            border: 1px solid var(--button-border);
+            max-width: 600px;
+        }
+
+        .save-load-btn {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            padding: 8px 15px;
+            margin: 5px;
+            font-size: 14px;
+            background-color: var(--button-bg);
+            color: var(--text-color);
+            border: 1px solid var(--button-border);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .save-load-btn:hover {
+            background-color: var(--button-selected);
+            border-color: var(--button-selected-border);
+        }
+
+        .save-slot {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: var(--container-bg);
+            border-radius: 6px;
+            border: 1px solid var(--button-border);
+        }
+
+        .slot-info {
+            flex-grow: 1;
+            text-align: left;
+            padding-left: 10px;
+        }
+
+        .save-slot-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .offline-status {
+            margin-top: 15px;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .offline-status.online {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .offline-status.offline {
+            background-color: #fff8e1;
+            color: #ff8f00;
+        }
+
         @media (max-width: 480px) {
             body {
                 padding: 10px;
@@ -318,6 +386,11 @@
                 padding: 8px 16px;
                 font-size: 14px;
                 margin: 5px 3px;
+            }
+            
+            .save-load-btn {
+                padding: 6px 12px;
+                font-size: 12px;
             }
         }
 
@@ -418,6 +491,17 @@
         <div class="lives">Remaining Tries: <span id="remainingLives">4</span></div>
         <p>Find groups of 4 related words</p>
         
+        <!-- Save/Load Controls -->
+        <div class="save-load-container">
+            <div class="save-load-buttons">
+                <button id="saveGameBtn" class="save-load-btn">Save Game</button>
+                <button id="loadGameBtn" class="save-load-btn">Load Game</button>
+            </div>
+            <div id="offlineStatus" class="offline-status online">
+                Online mode - Your progress is being saved automatically
+            </div>
+        </div>
+        
         <div class="word-grid" id="wordGrid"></div>
         <div id="message" class="message"></div>
         <div class="controls">
@@ -448,14 +532,57 @@
             </form>
         </div>
     </div> 
+    
+    <!-- Save Game Modal -->
+    <div id="saveGameModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeSaveGame">&times;</span>
+            <h2>Save Game</h2>
+            <p>Choose a save slot:</p>
+            <div id="saveSlots"></div>
+        </div>
+    </div>
+    
+    <!-- Load Game Modal -->
+    <div id="loadGameModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeLoadGame">&times;</span>
+            <h2>Load Game</h2>
+            <p>Choose a save slot to load:</p>
+            <div id="loadSlots"></div>
+        </div>
+    </div>
 
     <script type="module">
         import { wordBank } from '/connections/wordBank.js';
         import { GameLogic } from '/connections/gameLogic.js';
+        import { saveGame, loadGame, getSaveSlotInfo, deleteSave, setupOfflineSupport, isStorageAvailable } from '/connections/saveSystem.js';
 
         const game = new GameLogic(wordBank);
         let selectedWords = new Set();
         let highscores = JSON.parse(localStorage.getItem('connections-highscores')) || [];
+        
+        // Setup offline functionality
+        setupOfflineSupport();
+        
+        // Update offline status based on network state
+        function updateOfflineStatus() {
+            const statusElement = document.getElementById('offlineStatus');
+            if (navigator.onLine) {
+                statusElement.textContent = 'Online mode - Your progress is being saved automatically';
+                statusElement.className = 'offline-status online';
+            } else {
+                statusElement.textContent = 'Offline mode - Game will sync when connection returns';
+                statusElement.className = 'offline-status offline';
+            }
+        }
+        
+        // Listen for online/offline events
+        window.addEventListener('online', updateOfflineStatus);
+        window.addEventListener('offline', updateOfflineStatus);
+        
+        // Initial status check
+        updateOfflineStatus();
 
         function updateUI() {
             const state = game.getGameState();
@@ -481,35 +608,6 @@
             setTimeout(() => {
                 messageDiv.style.opacity = '0';
             }, 3000);
-        }
-
-        function updateFoundGroups() {
-            const foundGroupsDiv = document.getElementById('foundGroups');
-            foundGroupsDiv.innerHTML = '';
-            const colors = ['yellow', 'green', 'blue', 'purple'];
-            
-            game.foundGroups.forEach((group, index) => {
-                const groupDiv = document.createElement('div');
-                groupDiv.className = `found-group ${colors[index % colors.length]}`;
-                const categoryTitle = document.createElement('strong');
-                categoryTitle.textContent = group.category;
-                groupDiv.appendChild(categoryTitle);
-                
-                const wordsList = document.createElement('div');
-                wordsList.style.marginTop = '5px';
-                wordsList.textContent = group.words.join(' • ');
-                groupDiv.appendChild(wordsList);
-                
-                foundGroupsDiv.appendChild(groupDiv);
-                
-                // Animate the group appearing
-                groupDiv.style.opacity = '0';
-                groupDiv.style.transform = 'translateY(20px)';
-                setTimeout(() => {
-                    groupDiv.style.opacity = '1';
-                    groupDiv.style.transform = 'translateY(0)';
-                }, 100);
-            });
         }
 
         function startNewLevel() {
@@ -565,7 +663,8 @@
                         document.getElementById('nextLevelBtn').style.display = 'none';
                         checkHighscore(game.currentLevel);
                     } else {
-                        game.currentLevel++;
+                        // Use onLevelComplete to handle level progression and auto-saving
+                        const result = game.onLevelComplete();
                         showMessage('Level Complete! Click Next Level to continue', 'success');
                         document.getElementById('nextLevelBtn').style.display = 'block';
                     }
@@ -606,6 +705,7 @@
             game.currentLevel = 1;
             game.lives = 4;
             game.usedWords = new Set();
+            game.gameId = Date.now().toString(); // New game ID
             startNewLevel();
             document.getElementById('submitBtn').disabled = true;
         });
@@ -676,9 +776,172 @@
             document.getElementById('highscoreModal').style.display = 'flex';
         }
 
-        // Close highscore modal
+        // Save game functionality
+        document.getElementById('saveGameBtn').addEventListener('click', showSaveGameModal);
+        
+        function showSaveGameModal() {
+            const saveSlots = document.getElementById('saveSlots');
+            saveSlots.innerHTML = '';
+            
+            // Get current save slots info
+            const slots = getSaveSlotInfo();
+            
+            // Create UI for each save slot
+            for (let i = 1; i <= 3; i++) {
+                const slotInfo = slots.find(slot => slot.slotId === i);
+                const isEmpty = !slotInfo || slotInfo.isEmpty;
+                
+                const slotDiv = document.createElement('div');
+                slotDiv.className = 'save-slot';
+                
+                const slotLabel = document.createElement('div');
+                slotLabel.className = 'slot-info';
+                slotLabel.textContent = isEmpty ? 
+                    `Save Slot ${i} - Empty` : 
+                    `Save Slot ${i} - Level ${slotInfo.level}`;
+                
+                const saveButton = document.createElement('button');
+                saveButton.className = 'save-load-btn';
+                saveButton.textContent = isEmpty ? 'Save' : 'Overwrite';
+                saveButton.addEventListener('click', () => {
+                    saveGameToSlot(i);
+                    document.getElementById('saveGameModal').style.display = 'none';
+                });
+                
+                slotDiv.appendChild(slotLabel);
+                slotDiv.appendChild(saveButton);
+                saveSlots.appendChild(slotDiv);
+            }
+            
+            document.getElementById('saveGameModal').style.display = 'flex';
+        }
+        
+        function saveGameToSlot(slotId) {
+            const success = game.saveToSlot(slotId);
+            if (success) {
+                showMessage(`Game saved to slot ${slotId}`, 'success');
+            } else {
+                showMessage('Failed to save game', 'error');
+            }
+        }
+        
+        // Load game functionality
+        document.getElementById('loadGameBtn').addEventListener('click', showLoadGameModal);
+        
+        function showLoadGameModal() {
+            const loadSlots = document.getElementById('loadSlots');
+            loadSlots.innerHTML = '';
+            
+            // Get current save slots info
+            const slots = getSaveSlotInfo();
+            
+            // Create UI for each save slot and autosave
+            for (let i = 1; i <= 3; i++) {
+                const slotInfo = slots.find(slot => slot.slotId === i);
+                const isEmpty = !slotInfo || slotInfo.isEmpty;
+                
+                const slotDiv = document.createElement('div');
+                slotDiv.className = 'save-slot';
+                
+                const slotLabel = document.createElement('div');
+                slotLabel.className = 'slot-info';
+                slotLabel.textContent = isEmpty ? 
+                    `Save Slot ${i} - Empty` : 
+                    `Save Slot ${i} - Level ${slotInfo.level}`;
+                
+                const slotActions = document.createElement('div');
+                slotActions.className = 'save-slot-actions';
+                
+                if (!isEmpty) {
+                    const loadButton = document.createElement('button');
+                    loadButton.className = 'save-load-btn';
+                    loadButton.textContent = 'Load';
+                    loadButton.addEventListener('click', () => {
+                        loadGameFromSlot(i);
+                        document.getElementById('loadGameModal').style.display = 'none';
+                    });
+                    
+                    const deleteButton = document.createElement('button');
+                    deleteButton.className = 'save-load-btn';
+                    deleteButton.textContent = 'Delete';
+                    deleteButton.addEventListener('click', () => {
+                        deleteSaveSlot(i);
+                        // Refresh the modal
+                        showLoadGameModal();
+                    });
+                    
+                    slotActions.appendChild(loadButton);
+                    slotActions.appendChild(deleteButton);
+                } else {
+                    const emptyLabel = document.createElement('span');
+                    emptyLabel.textContent = 'No save data';
+                    slotActions.appendChild(emptyLabel);
+                }
+                
+                slotDiv.appendChild(slotLabel);
+                slotDiv.appendChild(slotActions);
+                loadSlots.appendChild(slotDiv);
+            }
+            
+            // Add autosave slot if it exists
+            const autosave = slots.find(slot => slot.slotId === 'auto');
+            if (autosave && !autosave.isEmpty) {
+                const slotDiv = document.createElement('div');
+                slotDiv.className = 'save-slot';
+                
+                const slotLabel = document.createElement('div');
+                slotLabel.className = 'slot-info';
+                slotLabel.textContent = `Autosave - Level ${autosave.level}`;
+                
+                const loadButton = document.createElement('button');
+                loadButton.className = 'save-load-btn';
+                loadButton.textContent = 'Load';
+                loadButton.addEventListener('click', () => {
+                    loadGameFromSlot('auto');
+                    document.getElementById('loadGameModal').style.display = 'none';
+                });
+                
+                slotDiv.appendChild(slotLabel);
+                slotDiv.appendChild(loadButton);
+                loadSlots.appendChild(slotDiv);
+            }
+            
+            document.getElementById('loadGameModal').style.display = 'flex';
+        }
+        
+        function loadGameFromSlot(slotId) {
+            const success = game.loadFromSlot(slotId);
+            if (success) {
+                showMessage(`Game loaded from ${slotId === 'auto' ? 'autosave' : 'slot ' + slotId}`, 'success');
+                
+                // Update UI and redraw the game board with the loaded game state
+                updateUI();
+                startNewLevel();  // Re-generate the level with the loaded data
+            } else {
+                showMessage('Failed to load game', 'error');
+            }
+        }
+        
+        function deleteSaveSlot(slotId) {
+            const success = deleteSave(slotId);
+            if (success) {
+                showMessage(`Save slot ${slotId} deleted`, 'success');
+            } else {
+                showMessage('Failed to delete save', 'error');
+            }
+        }
+
+        // Close modal button functionality
         document.getElementById('closeHighscore').addEventListener('click', () => {
             document.getElementById('highscoreModal').style.display = 'none';
+        });
+        
+        document.getElementById('closeSaveGame').addEventListener('click', () => {
+            document.getElementById('saveGameModal').style.display = 'none';
+        });
+        
+        document.getElementById('closeLoadGame').addEventListener('click', () => {
+            document.getElementById('loadGameModal').style.display = 'none';
         });
 
         // Close modals when clicking outside
@@ -689,10 +952,21 @@
             if (e.target === document.getElementById('newHighscoreModal')) {
                 document.getElementById('newHighscoreModal').style.display = 'none';
             }
+            if (e.target === document.getElementById('saveGameModal')) {
+                document.getElementById('saveGameModal').style.display = 'none';
+            }
+            if (e.target === document.getElementById('loadGameModal')) {
+                document.getElementById('loadGameModal').style.display = 'none';
+            }
         });
 
-        // Start first level when page loads
+        // Start game - check for autosave first, then start new level
         window.addEventListener('load', () => {
+            // Check if autosave exists
+            if (game.loadFromSlot('auto')) {
+                showMessage('Game restored from autosave', 'success');
+            }
+            
             startNewLevel();
             document.getElementById('highscoreBtn').style.display = 'inline-block';
         });

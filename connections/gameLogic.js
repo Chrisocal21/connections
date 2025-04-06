@@ -1,3 +1,5 @@
+import { saveGame, loadGame, startAutosave, stopAutosave } from './saveSystem.js';
+
 // Copy of gameLogic.js in the connections directory
 export class GameLogic {
     constructor(wordBank) {
@@ -8,6 +10,69 @@ export class GameLogic {
         this.foundGroups = [];
         this.usedWords = new Set();
         this.levelWords = [];
+        this.gameId = Date.now().toString(); // Unique ID for this game instance
+        
+        // Start autosave
+        this.startAutosaveProcess();
+    }
+
+    /**
+     * Get the complete game state for saving
+     */
+    getFullGameState() {
+        return {
+            gameId: this.gameId,
+            currentLevel: this.currentLevel,
+            maxLevels: this.maxLevels,
+            lives: this.lives,
+            foundGroups: this.foundGroups,
+            usedWords: Array.from(this.usedWords),
+            levelWords: this.levelWords,
+            timestamp: Date.now()
+        };
+    }
+
+    /**
+     * Start the autosave process
+     */
+    startAutosaveProcess() {
+        startAutosave(() => this.getFullGameState());
+    }
+
+    /**
+     * Stop the autosave process
+     */
+    stopAutosaveProcess() {
+        stopAutosave();
+    }
+
+    /**
+     * Save the game to a specific slot
+     * @param {number} slotId - The save slot (1-3)
+     */
+    saveToSlot(slotId) {
+        return saveGame(this.getFullGameState(), slotId);
+    }
+
+    /**
+     * Load game from a save slot
+     * @param {number|string} slotId - The save slot (1-3 or 'auto')
+     * @returns {boolean} - Whether load was successful
+     */
+    loadFromSlot(slotId) {
+        const savedGame = loadGame(slotId);
+        if (!savedGame) return false;
+        
+        // Restore game state
+        this.gameId = savedGame.gameId;
+        this.currentLevel = savedGame.currentLevel;
+        this.maxLevels = savedGame.maxLevels;
+        this.lives = savedGame.lives;
+        this.foundGroups = savedGame.foundGroups;
+        this.usedWords = new Set(savedGame.usedWords);
+        this.levelWords = savedGame.levelWords;
+        
+        return true;
     }
 
     getGameState() {
@@ -163,5 +228,28 @@ export class GameLogic {
     
     isGameComplete() {
         return this.currentLevel >= this.maxLevels;
+    }
+    
+    /**
+     * Handle level completion by saving progress
+     */
+    onLevelComplete() {
+        // Increment level
+        this.currentLevel++;
+        
+        // Auto-save on level completion
+        saveGame(this.getFullGameState(), 'auto');
+        
+        return {
+            level: this.currentLevel,
+            isGameComplete: this.isGameComplete()
+        };
+    }
+    
+    /**
+     * Clean up resources when game is finished
+     */
+    cleanup() {
+        this.stopAutosaveProcess();
     }
 }
