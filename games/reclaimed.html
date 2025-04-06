@@ -618,8 +618,8 @@
     
     <div class="warning-indicator" id="warning-indicator">Resources critically low!</div>
     
-    <script src="/js/games/reclaimed/gameLogic.js"></script>
-    <script src="/js/games/reclaimed/visualizations.js"></script>
+    <script src="/js/games/reclaimed/gameLogic.js?v=1.1.0"></script>
+    <script src="/js/games/reclaimed/visualizations.js?v=1.1.0"></script>
     <script>
         // Initialize the game
         let game = new ReclaimedGame();
@@ -727,6 +727,20 @@
         
         // Initialize visualizations after DOM is fully loaded
         document.addEventListener('DOMContentLoaded', () => {
+            // Add cache-busting reload logic
+            if (localStorage.getItem('reclaimedVersion') !== game.gameVersion) {
+                console.log(`Version mismatch detected: stored=${localStorage.getItem('reclaimedVersion')}, current=${game.gameVersion}`);
+                localStorage.setItem('reclaimedVersion', game.gameVersion);
+                
+                // If this isn't a first-time visit (had a previous version), reload to clear cache
+                if (localStorage.getItem('reclaimedGameSave')) {
+                    console.log("Reloading to ensure clean version load");
+                    // Use a small timeout to ensure the version is stored before reload
+                    setTimeout(() => location.reload(true), 500);
+                    return;
+                }
+            }
+            
             mapGenerator = new ReclaimedMapGenerator('mapCanvas', game.gameState);
             resourceGraph = new ReclaimedGraphRenderer('resourceGraph');
             

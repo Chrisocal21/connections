@@ -1,15 +1,17 @@
 {
   "version": 2,
   "builds": [
-    { "src": "server.js", "use": "@vercel/node@2.15.8" },
-    { "src": "connections/*.js", "use": "@vercel/static" },
-    { "src": "games/*.html", "use": "@vercel/static" },
-    { "src": "*.html", "use": "@vercel/static" },
-    { "src": "public/**/*", "use": "@vercel/static" }
+    { "src": "server.js", "use": "@vercel/node" },
+    { "src": "connections/*.js", "use": "@vercel/static-build" },
+    { "src": "games/*.html", "use": "@vercel/static-build" },
+    { "src": "*.html", "use": "@vercel/static-build" },
+    { "src": "js/**/*", "use": "@vercel/static-build" },
+    { "src": "public/**/*", "use": "@vercel/static-build" }
   ],
   "routes": [
     { "src": "/connections/wordBank.js", "dest": "/connections/wordBank.js" },
     { "src": "/connections/gameLogic.js", "dest": "/connections/gameLogic.js" },
+    { "src": "/js/games/reclaimed/(.*)", "dest": "/js/games/reclaimed/$1" },
     { "src": "/sw.js", "dest": "/public/sw.js" },
     { "src": "/manifest.json", "dest": "/public/manifest.json" },
     { "src": "/icons/(.*)", "dest": "/public/icons/$1" },
