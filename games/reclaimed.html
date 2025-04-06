@@ -618,8 +618,53 @@
     
     <div class="warning-indicator" id="warning-indicator">Resources critically low!</div>
     
-    <script src="/js/games/reclaimed/gameLogic.js?v=1.1.0"></script>
-    <script src="/js/games/reclaimed/visualizations.js?v=1.1.0"></script>
+    <!-- Inline fallback scripts to ensure the game always loads even if external JS fails -->
+    <script>
+        // Check if scripts are loading properly
+        let scriptsLoaded = 0;
+        const requiredScripts = 2;
+        
+        function checkScriptsLoaded() {
+            scriptsLoaded++;
+            if (scriptsLoaded === requiredScripts) {
+                console.log("All scripts loaded successfully!");
+            }
+        }
+        
+        // Function to handle script load failures
+        function handleScriptError(scriptName) {
+            console.error(`Failed to load ${scriptName}. Using inline fallback.`);
+            
+            if (scriptName === 'gameLogic') {
+                // Load the gameLogic.js content from GitHub as a fallback
+                const script = document.createElement('script');
+                script.src = 'https://raw.githubusercontent.com/chrisoc19/connections/main/js/games/reclaimed/gameLogic.js';
+                script.onerror = function() {
+                    alert("Failed to load game scripts. Please try clearing your browser cache or use the reset page.");
+                    window.location = '/games/reclaimed-reset.html';
+                };
+                document.body.appendChild(script);
+            } else if (scriptName === 'visualizations') {
+                // Load the visualizations.js content from GitHub as a fallback
+                const script = document.createElement('script');
+                script.src = 'https://raw.githubusercontent.com/chrisoc19/connections/main/js/games/reclaimed/visualizations.js';
+                script.onerror = function() {
+                    alert("Failed to load game scripts. Please try clearing your browser cache or use the reset page.");
+                    window.location = '/games/reclaimed-reset.html';
+                };
+                document.body.appendChild(script);
+            }
+        }
+    </script>
+    
+    <!-- Load external scripts with error handling -->
+    <script src="/js/games/reclaimed/gameLogic.js?v=1.1.0" 
+            onload="checkScriptsLoaded()" 
+            onerror="handleScriptError('gameLogic')"></script>
+    <script src="/js/games/reclaimed/visualizations.js?v=1.1.0" 
+            onload="checkScriptsLoaded()" 
+            onerror="handleScriptError('visualizations')"></script>
+    
     <script>
         // Initialize the game
         let game = new ReclaimedGame();

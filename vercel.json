@@ -9,9 +9,12 @@
     { "src": "public/**/*", "use": "@vercel/static-build" }
   ],
   "routes": [
+    { "src": "/js/games/reclaimed/gameLogic.js", "dest": "/js/games/reclaimed/gameLogic.js", "headers": { "content-type": "application/javascript" } },
+    { "src": "/js/games/reclaimed/visualizations.js", "dest": "/js/games/reclaimed/visualizations.js", "headers": { "content-type": "application/javascript" } },
     { "src": "/connections/wordBank.js", "dest": "/connections/wordBank.js" },
     { "src": "/connections/gameLogic.js", "dest": "/connections/gameLogic.js" },
     { "src": "/js/games/reclaimed/(.*)", "dest": "/js/games/reclaimed/$1" },
+    { "src": "/games/reclaimed-reset.html", "dest": "/games/reclaimed-reset.html" },
     { "src": "/sw.js", "dest": "/public/sw.js" },
     { "src": "/manifest.json", "dest": "/public/manifest.json" },
     { "src": "/icons/(.*)", "dest": "/public/icons/$1" },

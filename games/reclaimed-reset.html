@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Reclaimed - Reset Portal</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #EEE;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 50px;
+            background-image: radial-gradient(circle at center, #1a1a1a 0%, #0a0a0a 100%);
+        }
+        h1 {
+            margin-top: 30px;
+            font-size: 2.5em;
+            text-shadow: 0 0 10px rgba(100, 217, 255, 0.3);
+            letter-spacing: 2px;
+        }
+        p {
+            font-size: 1.2em;
+            max-width: 600px;
+            margin: 20px auto;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: rgba(30, 30, 30, 0.7);
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        button {
+            background: #1E3A5F;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: #2A5795;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <h1>RECLAIMED</h1>
+    <p>Game Update Portal</p>
+    
+    <div class="container">
+        <h2>Update Options</h2>
+        <p>If you're experiencing issues with the Reclaimed game not updating to the newest version, use one of the options below:</p>
+        
+        <div>
+            <button id="clearCache">Clear Cache & Start Game</button>
+            <button id="resetGame">Reset Game Data & Start</button>
+            <button id="backButton">Back to Games</button>
+        </div>
+        
+        <div style="margin-top: 30px;">
+            <p>Current version: <span id="versionInfo">Checking...</span></p>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check for stored version
+            const storedVersion = localStorage.getItem('reclaimedVersion') || 'Not found';
+            document.getElementById('versionInfo').textContent = storedVersion;
+            
+            // Clear Cache Button
+            document.getElementById('clearCache').addEventListener('click', function() {
+                // Clear localStorage version to force reload
+                localStorage.removeItem('reclaimedVersion');
+                
+                // Redirect to game with cache-busting parameter
+                window.location.href = '/games/reclaimed.html?v=' + new Date().getTime();
+            });
+            
+            // Reset Game Button
+            document.getElementById('resetGame').addEventListener('click', function() {
+                if (confirm('Are you sure you want to reset all game data? This cannot be undone.')) {
+                    // Clear all game data
+                    localStorage.removeItem('reclaimedGameSave');
+                    localStorage.removeItem('reclaimedVersion');
+                    
+                    // Redirect to game with cache-busting parameter
+                    window.location.href = '/games/reclaimed.html?v=' + new Date().getTime();
+                }
+            });
+            
+            // Back Button
+            document.getElementById('backButton').addEventListener('click', function() {
+                window.location.href = '/';
+            });
+        });
+    </script>
+</body>
+</html>
