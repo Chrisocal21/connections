@@ -34,8 +34,6 @@
 
         #board {
             display: grid;
-            grid-template-columns: repeat(3, 100px);
-            grid-template-rows: repeat(3, 100px);
             gap: 5px;
             margin-bottom: 20px;
         }
@@ -160,10 +158,87 @@
             --submit-btn-hover: #388e3c;
         }
 
+        /* Level selection styles */
+        .level-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .level-btn {
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--button-bg);
+            border: 2px solid var(--button-border);
+            color: var(--text-color);
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s ease-in-out;
+            border-radius: 8px;
+            flex-direction: column;
+        }
+
+        .level-btn:hover {
+            border-color: var(--button-selected-border);
+            transform: scale(1.05);
+        }
+
+        .level-btn.active {
+            border-color: var(--button-selected-border);
+            background-color: var(--button-selected);
+        }
+
+        .level-btn.completed {
+            position: relative;
+        }
+
+        .level-btn.completed::after {
+            content: "✓";
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .level-grid-size {
+            font-size: 12px;
+            margin-top: 5px;
+            opacity: 0.8;
+        }
+
+        .level-section, .game-section {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .back-to-levels {
+            margin-top: 20px;
+            background-color: var(--button-bg);
+            color: var(--text-color);
+        }
+
         @media (max-width: 480px) {
-            #board {
-                grid-template-columns: repeat(3, 80px);
-                grid-template-rows: repeat(3, 80px);
+            .level-btn {
+                width: 60px;
+                height: 60px;
+                font-size: 16px;
             }
 
             .game-container {
@@ -185,9 +260,26 @@
     </a>
     <div class="game-container">
         <h1>Tile Quest</h1>
-        <div id="board"></div>
-        <button onclick="shuffleTiles()">Shuffle</button>
-        <div id="moveCounter" class="move-counter">Moves: 0</div>
+        
+        <div id="levelSection" class="level-section">
+            <h2>Select a Level</h2>
+            <div class="level-container" id="levelContainer">
+                <!-- Levels will be generated here -->
+            </div>
+        </div>
+        
+        <div id="gameSection" class="game-section" style="display: none;">
+            <div id="levelInfo">
+                <h2>Level <span id="currentLevel">1</span></h2>
+            </div>
+            <div id="board"></div>
+            <div class="stats">
+                <div id="moveCounter" class="move-counter">Moves: 0</div>
+                <div id="bestScore" class="move-counter">Best: -</div>
+            </div>
+            <button id="shuffleButton" onclick="shuffleTiles()">Shuffle</button>
+            <button class="back-to-levels" onclick="showLevelSelection()">Back to Levels</button>
+        </div>
     </div>
 
     <script>
@@ -208,14 +300,106 @@
             }
         });
 
+        // Game variables
         const board = document.getElementById('board');
         const moveCounter = document.getElementById('moveCounter');
+        const bestScoreElement = document.getElementById('bestScore');
+        const levelSection = document.getElementById('levelSection');
+        const gameSection = document.getElementById('gameSection');
+        const currentLevelElement = document.getElementById('currentLevel');
         let tiles = [];
         let moves = 0;
+        let currentLevel = 1;
+        let gridSize = 3; // Starting with 3x3
+        
+        // Level configuration
+        const levels = [
+            { id: 1, name: "Beginner", size: 3, completed: false, bestScore: null },
+            { id: 2, name: "Easy", size: 3, completed: false, bestScore: null },
+            { id: 3, name: "Medium", size: 4, completed: false, bestScore: null },
+            { id: 4, name: "Hard", size: 4, completed: false, bestScore: null },
+            { id: 5, name: "Expert", size: 5, completed: false, bestScore: null },
+            { id: 6, name: "Master", size: 5, completed: false, bestScore: null }
+        ];
+
+        // Load saved progress
+        function loadProgress() {
+            const savedProgress = localStorage.getItem('tileQuestProgress');
+            if (savedProgress) {
+                const progress = JSON.parse(savedProgress);
+                progress.forEach(level => {
+                    const existingLevel = levels.find(l => l.id === level.id);
+                    if (existingLevel) {
+                        existingLevel.completed = level.completed;
+                        existingLevel.bestScore = level.bestScore;
+                    }
+                });
+            }
+        }
+
+        // Save progress
+        function saveProgress() {
+            localStorage.setItem('tileQuestProgress', JSON.stringify(levels));
+        }
+
+        // Generate level selection UI
+        function generateLevelSelection() {
+            const levelContainer = document.getElementById('levelContainer');
+            levelContainer.innerHTML = '';
+            
+            levels.forEach(level => {
+                const levelBtn = document.createElement('div');
+                levelBtn.className = `level-btn ${level.completed ? 'completed' : ''}`;
+                levelBtn.innerHTML = `
+                    <div>Level ${level.id}</div>
+                    <div class="level-grid-size">${level.size}x${level.size}</div>
+                `;
+                levelBtn.addEventListener('click', () => startLevel(level.id));
+                levelContainer.appendChild(levelBtn);
+            });
+        }
+
+        // Start a level
+        function startLevel(levelId) {
+            currentLevel = levelId;
+            const level = levels.find(l => l.id === levelId);
+            gridSize = level.size;
+            
+            // Update UI
+            currentLevelElement.textContent = levelId;
+            bestScoreElement.textContent = `Best: ${level.bestScore || '-'}`;
+            
+            // Hide level selection, show game
+            levelSection.style.display = 'none';
+            gameSection.style.display = 'flex';
+            
+            // Reset and create new board
+            moves = 0;
+            moveCounter.textContent = `Moves: ${moves}`;
+            createBoard();
+            shuffleTiles();
+        }
+
+        // Show level selection
+        function showLevelSelection() {
+            gameSection.style.display = 'none';
+            levelSection.style.display = 'flex';
+            generateLevelSelection();
+        }
 
         function createBoard() {
-            tiles = [...Array(8).keys()].map(n => n + 1); // Tiles 1–8
+            tiles = [];
+            // Create tiles based on grid size
+            const totalTiles = gridSize * gridSize - 1;
+            for (let i = 1; i <= totalTiles; i++) {
+                tiles.push(i);
+            }
             tiles.push(null); // Empty tile
+            
+            // Set board grid layout based on level
+            board.style.gridTemplateColumns = `repeat(${gridSize}, ${100/gridSize}px)`;
+            board.style.gridTemplateRows = `repeat(${gridSize}, ${100/gridSize}px)`;
+            
             renderBoard();
         }
 
@@ -225,6 +409,12 @@
                 const tile = document.createElement('div');
                 tile.className = 'tile';
                 tile.dataset.index = index;
+                
+                // Set tile size based on grid size
+                tile.style.width = `${100/gridSize}px`;
+                tile.style.height = `${100/gridSize}px`;
+                tile.style.fontSize = `${24 * (3/gridSize)}px`;
+                
                 if (val === null) {
                     tile.classList.add('empty');
                 } else {
@@ -237,11 +427,17 @@
 
         function moveTile(index) {
             const emptyIndex = tiles.indexOf(null);
-            const validMoves = [index - 1, index + 1, index - 3, index + 3];
-
-            if (validMoves.includes(emptyIndex) &&
-                Math.abs((emptyIndex % 3) - (index % 3)) <= 1 &&
-                Math.abs((emptyIndex - index)) <= 3) {
+            
+            // Calculate row and column for empty and clicked tile
+            const emptyRow = Math.floor(emptyIndex / gridSize);
+            const emptyCol = emptyIndex % gridSize;
+            const tileRow = Math.floor(index / gridSize);
+            const tileCol = index % gridSize;
+            
+            // Check if move is valid (adjacent to empty tile)
+            if ((emptyRow === tileRow && Math.abs(emptyCol - tileCol) === 1) ||
+                (emptyCol === tileCol && Math.abs(emptyRow - tileRow) === 1)) {
+                
                 [tiles[emptyIndex], tiles[index]] = [tiles[index], tiles[emptyIndex]];
                 moves++;
                 moveCounter.textContent = `Moves: ${moves}`;
@@ -263,27 +459,69 @@
         }
 
         function isSolvable() {
+            // For odd-sized grids, count inversions
             const arr = tiles.filter(n => n !== null);
             let invCount = 0;
+            
             for (let i = 0; i < arr.length - 1; i++) {
                 for (let j = i + 1; j < arr.length; j++) {
                     if (arr[i] > arr[j]) invCount++;
                 }
             }
-            return invCount % 2 === 0;
+            
+            // For even-sized grids, also consider the position of the empty tile
+            if (gridSize % 2 === 0) {
+                const emptyIndex = tiles.indexOf(null);
+                const emptyRow = Math.floor(emptyIndex / gridSize);
+                return (invCount + emptyRow) % 2 === 0;
+            } else {
+                return invCount % 2 === 0;
+            }
         }
 
         function checkWin() {
-            const win = [...Array(8).keys()].map(n => n + 1).concat(null);
-            if (tiles.every((val, i) => val === win[i])) {
+            // Create the solution array for the current level
+            const totalTiles = gridSize * gridSize - 1;
+            const solution = [...Array(totalTiles).keys()].map(n => n + 1).concat(null);
+            
+            if (tiles.every((val, i) => val === solution[i])) {
                 setTimeout(() => {
-                    alert('🎉 You solved the puzzle!');
+                    // Mark level as completed
+                    const level = levels.find(l => l.id === currentLevel);
+                    level.completed = true;
+                    
+                    // Update best score
+                    if (!level.bestScore || moves < level.bestScore) {
+                        level.bestScore = moves;
+                        bestScoreElement.textContent = `Best: ${moves}`;
+                    }
+                    
+                    // Save progress
+                    saveProgress();
+                    
+                    // Show win message
+                    alert(`🎉 Level ${currentLevel} completed in ${moves} moves!`);
+                    
+                    // Unlock next level if available
+                    if (currentLevel < levels.length) {
+                        const nextLevel = currentLevel + 1;
+                        if (confirm(`Continue to Level ${nextLevel}?`)) {
+                            startLevel(nextLevel);
+                        } else {
+                            showLevelSelection();
+                        }
+                    } else {
+                        if (confirm('Congratulations! You completed all levels! Play again?')) {
+                            showLevelSelection();
+                        }
+                    }
                 }, 300);
             }
         }
 
-        createBoard();
-        shuffleTiles();
+        // Initialize game
+        loadProgress();
+        generateLevelSelection();
     </script>
 </body>
 </html>
