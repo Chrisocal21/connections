@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>New Game</title>
+    <title>Word Search Game</title>
     <style>
         body {
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
@@ -30,9 +30,78 @@
         }
 
         .game-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             margin: 20px auto;
             max-width: min(100%, 600px);
             padding: 10px;
+        }
+
+        @media (min-width: 768px) {
+            .game-area {
+                flex-direction: row;
+                align-items: flex-start;
+                justify-content: space-around;
+            }
+        }
+
+        #word-list {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        #word-list h3 {
+            color: var(--text-color);
+            margin-bottom: 10px;
+        }
+
+        #word-list ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #word-list li {
+            padding: 8px 10px;
+            margin-bottom: 5px;
+            background-color: var(--button-bg);
+            border: 1px solid var(--button-border);
+            border-radius: 4px;
+            color: var(--text-color);
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        table {
+            border-collapse: collapse;
+            margin: 0 auto;
+        }
+
+        td {
+            width: 36px;
+            height: 36px;
+            text-align: center;
+            font-weight: 600;
+            border: 1px solid var(--button-border);
+            cursor: pointer;
+            user-select: none;
+            background-color: var(--button-bg);
+            color: var(--text-color);
+            transition: all 0.2s ease;
+        }
+
+        .selected {
+            background-color: var(--button-selected);
+            border-color: var(--button-selected-border);
+            transform: scale(0.95);
+        }
+
+        .found {
+            background-color: var(--submit-btn-bg);
+            color: white;
+            border-color: var(--submit-btn-hover);
         }
 
         .controls {
@@ -63,13 +132,6 @@
 
         .btn:active {
             transform: translateY(1px);
-        }
-
-        .btn:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
         }
 
         .message {
@@ -106,6 +168,12 @@
 
             #game-container {
                 padding: 10px;
+            }
+
+            td {
+                width: 30px;
+                height: 30px;
+                font-size: 0.9em;
             }
 
             h1 {
@@ -185,29 +253,192 @@
         🏠
     </a>
     <div id="game-container">
-        <h1>New Game</h1>
-        <p>Your game description goes here</p>
-        
-        <div class="game-area" id="gameArea">
-            <!-- Your game elements will go here -->
-            <p>Game content placeholder</p>
-        </div>
+        <h1>Word Search</h1>
+        <p>Find hidden words in the grid - select a starting and ending point to highlight a word</p>
         
         <div id="message" class="message"></div>
         
+        <div class="game-area" id="gameArea">
+            <div id="word-list">
+                <h3>Words to Find:</h3>
+                <ul>
+                    <li>HAPPY</li>
+                    <li>LOVE</li>
+                    <li>WORLD</li>
+                    <li>WORDS</li>
+                    <li>SEARCH</li>
+                </ul>
+            </div>
+            <div id="game">
+                <table id="grid"></table>
+            </div>
+        </div>
+        
         <div class="controls">
-            <button id="startBtn" class="btn">Start Game</button>
+            <button id="resetBtn" class="btn">Reset Game</button>
         </div>
     </div>
 
     <script>
-        // Game Logic will go here
-        document.getElementById('startBtn').addEventListener('click', function() {
-            showMessage('Game started!', 'success');
-            // Your game initialization code will go here
-        });
+        // Grid configuration: 10x10 grid with hidden words placed horizontally.
+        const gridData = [
+            ["H","A","P","P","Y","Q","R","T","X","Z"],
+            ["L","O","V","E","K","B","N","C","U","P"],
+            ["W","O","R","L","D","E","F","G","H","I"],
+            ["Z","X","C","V","B","N","M","Q","W","E"],
+            ["R","T","Y","U","I","O","P","A","S","D"],
+            ["W","O","R","D","S","F","G","H","J","K"],
+            ["S","E","A","R","C","H","L","Z","X","M"],
+            ["Q","W","E","R","T","Y","U","I","O","P"],
+            ["A","S","D","F","G","H","J","K","L","Z"],
+            ["M","N","B","V","C","X","Z","L","K","J"]
+        ];
 
-        // Helper functions
+        // List of words hidden in the grid (all placed horizontally in this example)
+        const wordsToFind = ["HAPPY", "LOVE", "WORLD", "WORDS", "SEARCH"];
+        let foundWords = [];
+
+        const numRows = gridData.length;
+        const numCols = gridData[0].length;
+
+        // Variables to store selection start and end coordinates.
+        let selectionStart = null;
+        let selectionEnd = null;
+
+        // Create the grid as a table.
+        function createGrid() {
+            const table = document.getElementById('grid');
+            table.innerHTML = ''; // Clear existing grid
+            foundWords = []; // Reset found words
+            
+            for (let i = 0; i < numRows; i++) {
+                const tr = document.createElement('tr');
+                for (let j = 0; j < numCols; j++) {
+                    const td = document.createElement('td');
+                    td.textContent = gridData[i][j];
+                    td.dataset.row = i;
+                    td.dataset.col = j;
+                    td.addEventListener('mousedown', handleMouseDown);
+                    td.addEventListener('mouseup', handleMouseUp);
+                    tr.appendChild(td);
+                }
+                table.appendChild(tr);
+            }
+            
+            // Also reset the word list
+            updateWordList();
+        }
+
+        // When a cell is pressed, start a new selection.
+        function handleMouseDown(e) {
+            clearSelection();
+            selectionStart = { row: parseInt(this.dataset.row), col: parseInt(this.dataset.col) };
+            this.classList.add('selected');
+            // Add a listener to clear selection if mouseup happens outside a cell.
+            document.addEventListener('mouseup', clearSelectionListener);
+        }
+
+        // When the mouse is released, complete the selection.
+        function handleMouseUp(e) {
+            if (!selectionStart) return;
+            selectionEnd = { row: parseInt(this.dataset.row), col: parseInt(this.dataset.col) };
+            processSelection();
+            selectionStart = null;
+            selectionEnd = null;
+            document.removeEventListener('mouseup', clearSelectionListener);
+        }
+
+        // Clear any temporary selection if mouseup occurs outside grid cells.
+        function clearSelectionListener(e) {
+            clearSelection();
+        }
+
+        // Remove the "selected" class from any cells.
+        function clearSelection() {
+            const selectedCells = document.querySelectorAll('td.selected');
+            selectedCells.forEach(cell => cell.classList.remove('selected'));
+        }
+
+        // Process the selection: check if the line is valid and if it forms a hidden word.
+        function processSelection() {
+            const dx = selectionEnd.col - selectionStart.col;
+            const dy = selectionEnd.row - selectionStart.row;
+
+            // Must select at least two cells.
+            if (dx === 0 && dy === 0) {
+                return;
+            }
+
+            // Ensure selection is in a straight line: horizontal, vertical, or diagonal.
+            if (!(dx === 0 || dy === 0 || Math.abs(dx) === Math.abs(dy))) {
+                showMessage("Invalid selection. Please select in a straight line.", "error");
+                clearSelection();
+                return;
+            }
+
+            // Determine the step for rows and columns.
+            const stepRow = dy === 0 ? 0 : dy / Math.abs(dy);
+            const stepCol = dx === 0 ? 0 : dx / Math.abs(dx);
+
+            // Build the word from the selected path.
+            let word = "";
+            let cells = [];
+            let currentRow = selectionStart.row;
+            let currentCol = selectionStart.col;
+            while (true) {
+                word += gridData[currentRow][currentCol];
+                const cell = document.querySelector(`td[data-row='${currentRow}'][data-col='${currentCol}']`);
+                cells.push(cell);
+                if (currentRow === selectionEnd.row && currentCol === selectionEnd.col) break;
+                currentRow += stepRow;
+                currentCol += stepCol;
+            }
+
+            // Check if the formed word or its reverse is one of the hidden words.
+            let selectedWord = word.toUpperCase();
+            let reversedWord = word.split("").reverse().join("").toUpperCase();
+            if (wordsToFind.includes(selectedWord) || wordsToFind.includes(reversedWord)) {
+                // Mark the cells as found.
+                cells.forEach(cell => {
+                    cell.classList.add('found');
+                    cell.classList.remove('selected');
+                });
+                // Determine which word was found.
+                let foundWord = wordsToFind.includes(selectedWord) ? selectedWord : reversedWord;
+                if (!foundWords.includes(foundWord)) {
+                    foundWords.push(foundWord);
+                    updateWordList();
+                    showMessage(`You found "${foundWord}"!`, "success");
+                    
+                    // Check if all words are found
+                    if (foundWords.length === wordsToFind.length) {
+                        setTimeout(() => {
+                            showMessage("Congratulations! You found all words!", "success");
+                        }, 1000);
+                    }
+                }
+            } else {
+                showMessage("Word not found!", "error");
+                clearSelection();
+            }
+        }
+
+        // Update the word list to visually indicate which words have been found.
+        function updateWordList() {
+            const list = document.querySelector('#word-list ul');
+            list.innerHTML = "";
+            wordsToFind.forEach(word => {
+                const li = document.createElement('li');
+                li.textContent = word;
+                if (foundWords.includes(word)) {
+                    li.style.textDecoration = "line-through";
+                    li.style.opacity = "0.5";
+                }
+                list.appendChild(li);
+            });
+        }
+
+        // Display a message to the user
         function showMessage(text, type) {
             const messageDiv = document.getElementById('message');
             messageDiv.textContent = text;
@@ -217,6 +448,12 @@
                 messageDiv.style.opacity = '0';
             }, 3000);
         }
+
+        // Reset button functionality
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            createGrid();
+            showMessage("Game reset!", "success");
+        });
 
         // Theme toggle functionality
         const themeToggle = document.getElementById('themeToggle');
@@ -235,6 +472,9 @@
                 document.body.setAttribute('data-theme', 'dark');
             }
         });
+
+        // Initialize the grid once the document is loaded.
+        document.addEventListener("DOMContentLoaded", createGrid);
     </script>
 </body>
 </html>
