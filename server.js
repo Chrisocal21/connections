@@ -11,28 +11,27 @@ const port = 3000;
 
 // Serve static files from the root directory (except HTML files)
 app.use(express.static(__dirname, {
-  index: false,  // Disable automatic serving of index.html
-  extensions: ['js', 'css', 'png', 'jpg', 'jpeg', 'gif', 'svg']
+  index: false  // Disable automatic serving of index.html
 }));
 
 // Home page route (landing page with game selection)
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'home.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // Connections game route
-app.get('/games/connections', (req, res) => {
+app.get('/connections', (req, res) => {
   res.sendFile(path.join(__dirname, 'games', 'connections.html'));
 });
 
-// Keep the old route for backward compatibility
-app.get('/index.html', (req, res) => {
-  res.redirect('/');
+// Redirect old paths to maintain backward compatibility
+app.get('/games/connections', (req, res) => {
+  res.redirect('/connections');
 });
 
 // Add routes for future games here
 // Example:
-// app.get('/games/memory', (req, res) => {
+// app.get('/memory', (req, res) => {
 //   res.sendFile(path.join(__dirname, 'games', 'memory.html'));
 // });
 
