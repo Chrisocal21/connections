@@ -1,25 +1,26 @@
 {
   "version": 2,
-  "buildCommand": "node server.js",
-  "rewrites": [
+  "builds": [
     {
-      "source": "/connections",
-      "destination": "/games/connections.html"
-    },
-    {
-      "source": "/games/connections",
-      "destination": "/connections"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/server.js"
+      "src": "server.js",
+      "use": "@vercel/node@2.15.8"
     }
   ],
-  "functions": {
-    "server.js": {
-      "runtime": "@vercel/node@2.15.8",
-      "memory": 1024,
-      "maxDuration": 10
+  "routes": [
+    {
+      "src": "/connections",
+      "dest": "/games/connections.html"
+    },
+    {
+      "src": "/games/connections",
+      "dest": "/connections"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/server.js"
     }
+  ],
+  "env": {
+    "NODE_VERSION": "18.x"
   }
 }
