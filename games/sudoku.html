@@ -82,15 +82,16 @@
       margin: 20px auto;
       border-collapse: collapse;
       background-color: var(--container-bg);
+      width: 95%;
+      max-width: 450px;
     }
 
     #sudokuTable td {
-      width: 40px;
-      height: 40px;
+      position: relative;
       border: 1px solid var(--button-border);
       padding: 0;
       text-align: center;
-      position: relative;
+      aspect-ratio: 1 / 1;
     }
 
     /* Add thicker borders to separate 3x3 boxes */
@@ -116,11 +117,15 @@
       border: none;
       text-align: center;
       font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-      font-size: 18px;
+      font-size: clamp(14px, 4vw, 20px);
       font-weight: bold;
       background-color: transparent;
       color: var(--text-color);
       cursor: pointer;
+      padding: 0;
+      box-sizing: border-box;
+      min-width: 24px;
+      min-height: 24px;
     }
 
     #sudokuTable input:disabled {
@@ -131,6 +136,32 @@
     #sudokuTable input:focus {
       outline: none;
       background-color: var(--button-selected);
+    }
+
+    /* Highlight the numbers when selected */
+    #sudokuTable input.highlighted {
+      background-color: var(--button-selected);
+    }
+
+    /* Cell candidates/notes styling */
+    .cell-candidates {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      font-size: clamp(8px, 1.5vw, 10px);
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    .candidate {
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .message {
@@ -237,6 +268,72 @@
       --submit-btn-bg: #43a047;
       --submit-btn-hover: #388e3c;
     }
+
+    /* Number buttons for mobile devices */
+    #numberButtons {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin: 15px auto;
+      max-width: 450px;
+      width: 95%;
+    }
+
+    .number-button {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-weight: 600;
+      font-size: 18px;
+      padding: 10px 0;
+      border-radius: 8px;
+      border: none;
+      background-color: var(--button-bg);
+      color: var(--text-color);
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: all 0.2s ease;
+    }
+
+    .number-button:hover, .number-button:active {
+      background-color: var(--button-selected);
+      transform: translateY(-2px);
+    }
+
+    .clear-button {
+      grid-column: span 2;
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+
+    @media (max-width: 480px) {
+      .number-button {
+        font-size: 16px;
+        padding: 12px 0;
+      }
+      
+      #numberButtons {
+        grid-template-columns: repeat(5, 1fr);
+      }
+    }
+
+    /* Additional options for game settings */
+    .game-options {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin: 10px 0;
+    }
+
+    .option-toggle {
+      display: flex;
+      align-items: center;
+      font-size: 14px;
+      color: var(--text-color);
+    }
+
+    .option-toggle input {
+      margin-right: 5px;
+    }
   </style>
 </head>
 <body>
@@ -258,8 +355,19 @@
       <button id="newGameBtn" class="button">New Game</button>
       <button id="checkBtn" class="button">Check Solution</button>
     </div>
+    <div class="game-options">
+      <label class="option-toggle">
+        <input type="checkbox" id="autoAdvanceToggle" checked>
+        Auto-advance after input
+      </label>
+      <label class="option-toggle">
+        <input type="checkbox" id="highlightToggle" checked>
+        Highlight matching numbers
+      </label>
+    </div>
     <div id="message" class="message"></div>
     <table id="sudokuTable"></table>
+    <div id="numberButtons" class="controls"></div>
   </div>
 
   <script type="module">
@@ -267,6 +375,7 @@
     
     const game = new SudokuGame();
     let board = [];
+    let isAutoAdvanceEnabled = true;
 
     function showMessage(text, type) {
       const messageDiv = document.getElementById('message');
@@ -298,11 +407,38 @@
             input.disabled = true;
           }
           
-          // Add event listener to validate input
+          // Add event listeners for better mobile interaction
           input.addEventListener('input', (e) => {
             const val = e.target.value;
             if (val && (val < '1' || val > '9')) {
               e.target.value = '';
+            } else if (val) {
+              // Highlight same numbers
+              highlightMatchingNumbers(val);
+              
+              // Automatically move to next empty cell
+              if (isAutoAdvanceEnabled) {
+                moveToNextEmptyCell(i, j);
+              }
+            }
+          });
+          
+          // Add focus event for highlighting
+          input.addEventListener('focus', (e) => {
+            if (e.target.value) {
+              highlightMatchingNumbers(e.target.value);
+            }
+          });
+          
+          // Add keyboard navigation
+          input.addEventListener('keydown', (e) => {
+            handleKeyNavigation(e, i, j);
+          });
+          
+          // Make clicking on the cell more mobile-friendly
+          cellElement.addEventListener('click', () => {
+            if (!input.disabled) {
+              input.focus();
             }
           });
           
@@ -313,6 +449,112 @@
           rowElement.appendChild(cellElement);
         }
         table.appendChild(rowElement);
+      }
+      
+      // Add number buttons for mobile
+      createNumberButtons();
+    }
+    
+    // Create number input buttons for mobile devices
+    function createNumberButtons() {
+      const buttonContainer = document.getElementById('numberButtons');
+      buttonContainer.innerHTML = '';
+      
+      // Add "Clear" button
+      const clearBtn = document.createElement('button');
+      clearBtn.className = 'number-button clear-button';
+      clearBtn.textContent = 'Clear';
+      clearBtn.addEventListener('click', () => {
+        const activeInput = document.activeElement;
+        if (activeInput && activeInput.tagName === 'INPUT' && !activeInput.disabled) {
+          activeInput.value = '';
+          // Remove highlights
+          document.querySelectorAll('#sudokuTable input').forEach(input => {
+            input.classList.remove('highlighted');
+          });
+        }
+      });
+      buttonContainer.appendChild(clearBtn);
+      
+      // Add number buttons 1-9
+      for (let num = 1; num <= 9; num++) {
+        const button = document.createElement('button');
+        button.className = 'number-button';
+        button.textContent = num;
+        button.addEventListener('click', () => {
+          const activeInput = document.activeElement;
+          if (activeInput && activeInput.tagName === 'INPUT' && !activeInput.disabled) {
+            activeInput.value = num;
+            
+            // Trigger input event to apply validation and highlighting
+            const event = new Event('input', { bubbles: true });
+            activeInput.dispatchEvent(event);
+          }
+        });
+        buttonContainer.appendChild(button);
+      }
+    }
+    
+    // Highlight cells with matching numbers
+    function highlightMatchingNumbers(value) {
+      // Remove existing highlights
+      document.querySelectorAll('#sudokuTable input').forEach(input => {
+        input.classList.remove('highlighted');
+      });
+      
+      // Add highlights to matching numbers
+      if (value) {
+        document.querySelectorAll('#sudokuTable input').forEach(input => {
+          if (input.value === value) {
+            input.classList.add('highlighted');
+          }
+        });
+      }
+    }
+    
+    // Move to the next empty cell after entering a number
+    function moveToNextEmptyCell(row, col) {
+      const inputs = document.querySelectorAll('#sudokuTable input:not([disabled])');
+      const currentIndex = Array.from(inputs).findIndex(
+        input => parseInt(input.dataset.row) === row && parseInt(input.dataset.col) === col
+      );
+      
+      if (currentIndex !== -1 && currentIndex < inputs.length - 1) {
+        inputs[currentIndex + 1].focus();
+      }
+    }
+    
+    // Handle keyboard navigation in the grid
+    function handleKeyNavigation(event, row, col) {
+      // Allow arrow keys for navigation
+      if (event.key.startsWith('Arrow')) {
+        event.preventDefault();
+        
+        let newRow = row;
+        let newCol = col;
+        
+        switch (event.key) {
+          case 'ArrowUp':
+            newRow = Math.max(0, row - 1);
+            break;
+          case 'ArrowDown':
+            newRow = Math.min(8, row + 1);
+            break;
+          case 'ArrowLeft':
+            newCol = Math.max(0, col - 1);
+            break;
+          case 'ArrowRight':
+            newCol = Math.min(8, col + 1);
+            break;
+        }
+        
+        // Focus the new cell
+        const nextInput = document.querySelector(
+          `#sudokuTable input[data-row="${newRow}"][data-col="${newCol}"]`
+        );
+        if (nextInput) {
+          nextInput.focus();
+        }
       }
     }
 

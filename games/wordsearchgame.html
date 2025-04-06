@@ -35,8 +35,9 @@
             align-items: center;
             justify-content: center;
             margin: 20px auto;
-            max-width: min(100%, 600px);
+            max-width: 100%;
             padding: 10px;
+            gap: 20px;
         }
 
         @media (min-width: 768px) {
@@ -50,6 +51,7 @@
         #word-list {
             margin-bottom: 20px;
             text-align: left;
+            max-width: 100%;
         }
 
         #word-list h3 {
@@ -61,17 +63,47 @@
             list-style-type: none;
             padding: 0;
             margin: 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        @media (min-width: 768px) {
+            #word-list ul {
+                flex-direction: column;
+                justify-content: flex-start;
+            }
         }
 
         #word-list li {
             padding: 8px 10px;
-            margin-bottom: 5px;
             background-color: var(--button-bg);
             border: 1px solid var(--button-border);
             border-radius: 4px;
             color: var(--text-color);
             font-weight: 500;
             transition: all 0.2s ease;
+            font-size: clamp(12px, 3vw, 16px);
+            text-align: center;
+            flex-grow: 1;
+            flex-basis: calc(50% - 8px);
+            max-width: calc(50% - 8px);
+        }
+
+        @media (min-width: 480px) {
+            #word-list li {
+                flex-basis: calc(33.33% - 8px);
+                max-width: calc(33.33% - 8px);
+            }
+        }
+
+        @media (min-width: 768px) {
+            #word-list li {
+                flex-basis: 100%;
+                max-width: 100%;
+                text-align: left;
+            }
         }
 
         table {

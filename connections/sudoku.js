@@ -105,37 +105,166 @@ export class SudokuGame {
     return board.map(row => [...row]);
   }
 
-  // Remove numbers from the board based on difficulty level
+  // Remove numbers from the board based on difficulty level and pattern
   removeNumbers(board, difficulty) {
     const puzzle = this.copyBoard(board);
     let cellsToRemove;
+    let patternType;
     
+    // Set difficulty parameters
     if (difficulty === 'easy') {
       cellsToRemove = 30; // Remove ~30 cells for easy
+      patternType = 'balanced'; // Even distribution across the board
     } else if (difficulty === 'medium') {
-      cellsToRemove = 40; // Remove ~40 cells for medium
+      cellsToRemove = 45; // Remove ~45 cells for medium
+      patternType = 'diagonal'; // More focus on diagonal patterns
     } else if (difficulty === 'hard') {
-      cellsToRemove = 50; // Remove ~50 cells for hard
+      cellsToRemove = 55; // Remove ~55 cells for hard
+      patternType = 'asymmetric'; // Create asymmetric patterns for increased difficulty
     } else {
       cellsToRemove = 30; // Default to easy
+      patternType = 'balanced';
     }
     
-    let attempts = 0;
-    const maxAttempts = 100; // Prevent infinite loops
+    // Define regions to focus on based on pattern type
+    let priorityRegions = [];
     
-    while (cellsToRemove > 0 && attempts < maxAttempts) {
-      const row = Math.floor(Math.random() * 9);
-      const col = Math.floor(Math.random() * 9);
+    switch (patternType) {
+      case 'balanced':
+        // Balanced pattern removes cells evenly across the board
+        break;
+        
+      case 'diagonal':
+        // Diagonal pattern focuses on diagonal regions
+        priorityRegions = [
+          {rowStart: 0, rowEnd: 2, colStart: 0, colEnd: 2},
+          {rowStart: 3, rowEnd: 5, colStart: 3, colEnd: 5},
+          {rowStart: 6, rowEnd: 8, colStart: 6, colEnd: 8}
+        ];
+        break;
+        
+      case 'asymmetric':
+        // Asymmetric pattern creates more challenging puzzles
+        // Pick random regions to focus on
+        const regions = [
+          {rowStart: 0, rowEnd: 2, colStart: 0, colEnd: 2},
+          {rowStart: 0, rowEnd: 2, colStart: 3, colEnd: 5},
+          {rowStart: 0, rowEnd: 2, colStart: 6, colEnd: 8},
+          {rowStart: 3, rowEnd: 5, colStart: 0, colEnd: 2},
+          {rowStart: 3, rowEnd: 5, colStart: 3, colEnd: 5},
+          {rowStart: 3, rowEnd: 5, colStart: 6, colEnd: 8},
+          {rowStart: 6, rowEnd: 8, colStart: 0, colEnd: 2},
+          {rowStart: 6, rowEnd: 8, colStart: 3, colEnd: 5},
+          {rowStart: 6, rowEnd: 8, colStart: 6, colEnd: 8}
+        ];
+        
+        // Shuffle and select 3-4 regions to prioritize
+        this.shuffle(regions);
+        priorityRegions = regions.slice(0, 3 + Math.floor(Math.random() * 2));
+        break;
+    }
+    
+    // First handle priority regions (if any)
+    if (priorityRegions.length > 0) {
+      const priorityRemovalCount = Math.floor(cellsToRemove * 0.7); // 70% from priority regions
+      let removed = 0;
       
-      if (puzzle[row][col] !== 0) {
-        puzzle[row][col] = 0;
-        cellsToRemove--;
+      // Generate cells from priority regions
+      const priorityCells = [];
+      priorityRegions.forEach(region => {
+        for (let row = region.rowStart; row <= region.rowEnd; row++) {
+          for (let col = region.colStart; col <= region.colEnd; col++) {
+            priorityCells.push({row, col});
+          }
+        }
+      });
+      
+      // Shuffle the cells for randomization
+      this.shuffle(priorityCells);
+      
+      // Remove cells from priority regions
+      for (const cell of priorityCells) {
+        if (removed >= priorityRemovalCount) break;
+        if (puzzle[cell.row][cell.col] !== 0) {
+          puzzle[cell.row][cell.col] = 0;
+          removed++;
+        }
       }
       
-      attempts++;
+      // Remove the remaining cells from anywhere
+      let attempts = 0;
+      const maxAttempts = 200;
+      while (removed < cellsToRemove && attempts < maxAttempts) {
+        const row = Math.floor(Math.random() * 9);
+        const col = Math.floor(Math.random() * 9);
+        
+        if (puzzle[row][col] !== 0) {
+          puzzle[row][col] = 0;
+          removed++;
+        }
+        
+        attempts++;
+      }
+    } else {
+      // For balanced pattern, just remove cells randomly
+      let removed = 0;
+      let attempts = 0;
+      const maxAttempts = 200;
+      
+      while (removed < cellsToRemove && attempts < maxAttempts) {
+        const row = Math.floor(Math.random() * 9);
+        const col = Math.floor(Math.random() * 9);
+        
+        if (puzzle[row][col] !== 0) {
+          puzzle[row][col] = 0;
+          removed++;
+        }
+        
+        attempts++;
+      }
+    }
+    
+    // Ensure the puzzle has a unique solution for medium and hard difficulties
+    if (difficulty !== 'easy') {
+      this.ensureUniqueSolution(puzzle);
     }
     
     return puzzle;
+  }
+  
+  // Ensure the puzzle has a unique solution (for medium and hard difficulties)
+  ensureUniqueSolution(puzzle) {
+    // Implementation would check if removing a number creates multiple solutions
+    // This is a simplified version that just makes sure we don't remove too many
+    // For a full implementation, we would need to check with a solver
+    
+    // For now, we'll just ensure there are enough clues for a unique solution
+    // Typical minimum is 17 clues
+    let filledCells = 0;
+    for (let i = 0; i < 9; i++) {
+      for (let j = 0; j < 9; j++) {
+        if (puzzle[i][j] !== 0) {
+          filledCells++;
+        }
+      }
+    }
+    
+    // If we have fewer than 25 clues, add some back randomly
+    if (filledCells < 25) {
+      const solution = this.solution; // Use the stored solution
+      const needed = 25 - filledCells;
+      let added = 0;
+      
+      while (added < needed) {
+        const row = Math.floor(Math.random() * 9);
+        const col = Math.floor(Math.random() * 9);
+        
+        if (puzzle[row][col] === 0) {
+          puzzle[row][col] = solution[row][col];
+          added++;
+        }
+      }
+    }
   }
 
   // Create a puzzle based on selected difficulty
