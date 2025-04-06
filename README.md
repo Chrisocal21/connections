@@ -1,17 +1,20 @@
-# Connections Game
+# Games Collection
 
-A word-connection puzzle game where players find groups of 4 related words.
+A collection of web-based games, including the Connections word puzzle game.
 
 ## Project Structure
 
 ```
-connections/
+games-collection/
 ├── data/
-│   └── wordBank.js      # Contains all word categories and difficulties
+│   └── wordBank.js      # Contains word categories for Connections game
+├── games/
+│   └── connections.html # Connections game interface
 ├── js/
-│   └── gameLogic.js     # Game logic and level management
-├── index.html           # Main game interface
-├── server.js           # Simple Express server
+│   └── gameLogic.js     # Connections game logic and level management
+├── home.html           # Main landing page with game selection
+├── index.html          # (Legacy) Redirects to Connections game
+├── server.js           # Express server with multi-game routing
 └── package.json        # Project dependencies
 ```
 
@@ -27,10 +30,14 @@ npm install
 npm start
 ```
 
-3. Access the game at `http://localhost:3000`
+3. Access the game collection at `http://localhost:3000`
 
-## Key Features
+## Games Available
 
+### Connections
+A word-connection puzzle game where players find groups of 4 related words.
+
+**Key Features**:
 - 50 progressive difficulty levels
 - Multiple word categories
 - Dark/Light theme toggle
@@ -42,25 +49,6 @@ npm start
 - Restart functionality
 - Highscore leaderboard with player initials
 
-## Game Structure
-
-### Main Components:
-- 4x4 grid of word buttons
-- Level progress indicator
-- Lives counter
-- Submit button
-- Next level button
-- Theme toggle
-- Success/Error messages
-- Restart button
-- Highscores button
-
-### Difficulty Progression:
-- Levels 1-10: Easy (difficulty 1-2)
-- Levels 11-25: Medium (difficulty 1-3)
-- Levels 26-40: Hard (difficulty 2-3)
-- Levels 41-50: Expert (difficulty 2-4)
-
 ## Technical Details
 
 ### Dependencies
@@ -70,79 +58,22 @@ npm start
 - Responsive CSS Grid layout
 - Local Storage for saving highscores
 
-### Features to Implement
-1. Main game grid (4x4)
-2. Word selection system
-3. Category matching logic
-4. Level progression
-5. Score tracking
-6. Theme switching
-7. Responsive design
-8. Animation effects
-9. Restart functionality
-10. Highscore leaderboard
+### Adding New Games
+To add a new game to the collection:
 
-## Core Files Structure
+1. Create a new HTML file in the `games/` directory
+2. Add a route in `server.js` for the new game
+3. Add a game card to the home page in `home.html`
 
-1. `index.html`: Contains game UI and style definitions
-2. `gameLogic.js`: Handles game mechanics and state
-3. `wordBank.js`: Database of categorized words
-4. `server.js`: Basic Express server configuration
+## Developer Notes
 
-## Important CSS Variables
+### Shared Assets
+- CSS Variables for consistent theming
+- Home button included on all game pages
+- Theme toggle across all pages
 
-```css
-:root {
-  --bg-color
-  --container-bg
-  --text-color
-  --button-bg
-  --button-border
-  --button-selected
-  --button-selected-border
-  --submit-btn-bg
-  --submit-btn-hover
-}
-```
-
-## Game Logic Overview
-
-1. Word Selection:
-   - Maximum 4 words
-   - Visual feedback on selection
-   - Submit button enables with 4 selections
-
-2. Category Matching:
-   - All 4 words must be from same category
-   - Success removes matched words
-   - Failure reduces lives
-
-3. Level Progression:
-   - Complete when all words matched
-   - Difficulty increases with levels
-   - Lives reset each level
-
-4. Theme System:
-   - Light/Dark modes
-   - System preference detection
-   - Smooth transitions
-
-5. Restart Functionality:
-   - Resets game progress
-   - Restores initial lives and level
-
-6. Highscore Leaderboard:
-   - Saves player initials and scores
-   - Displays top scores
-   - Uses Local Storage for persistence
-
-## Using with App Koder
-
-1. Create new project
-2. Set up file structure as shown above
-3. Copy each file's contents
-4. Install Express dependency
-5. Update paths if needed
-6. Test functionality
-
-Remember to test touch interactions and responsive layout when implementing on mobile devices.
+### Feature Roadmap
+1. Add more games to the collection
+2. Create shared stylesheets
+3. Implement user accounts for cross-game progress
+4. Add global leaderboards
