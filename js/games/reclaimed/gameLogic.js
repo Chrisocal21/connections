@@ -5,7 +5,11 @@
 
 class ReclaimedGame {
   constructor() {
+    // Current game version - update this when making significant changes
+    this.gameVersion = "1.1.0";
+    
     this.gameState = {
+      version: this.gameVersion,
       day: 1,
       resources: {
         food: 10,
@@ -35,12 +39,60 @@ class ReclaimedGame {
     const savedGame = localStorage.getItem('reclaimedGameSave');
     if (savedGame) {
       try {
-        this.gameState = JSON.parse(savedGame);
-        console.log("Loaded saved game from day", this.gameState.day);
+        const parsedState = JSON.parse(savedGame);
+        
+        // Check if saved game version matches current version
+        if (!parsedState.version || parsedState.version !== this.gameVersion) {
+          console.log(`Game version mismatch: saved=${parsedState.version || 'unknown'}, current=${this.gameVersion}`);
+          
+          if (confirm("A new version of Reclaimed is available. Starting a new game is recommended for the best experience. Reset game data?")) {
+            this.resetGame();
+            alert("Game data reset. Enjoy the new version!");
+          } else {
+            // Try to upgrade the saved state to be compatible with current version
+            this.upgradeGameState(parsedState);
+          }
+        } else {
+          // Same version, just load the game
+          this.gameState = parsedState;
+          console.log("Loaded saved game from day", this.gameState.day);
+        }
       } catch (e) {
         console.error("Error loading saved game:", e);
+        alert("There was an error loading your saved game. Starting a new game.");
+        this.resetGame();
       }
     }
+  }
+  
+  upgradeGameState(oldState) {
+    console.log("Attempting to upgrade saved game state...");
+    
+    // Make sure all required properties exist in the saved state
+    this.gameState = {
+      version: this.gameVersion,
+      day: oldState.day || 1,
+      resources: {
+        food: oldState.resources?.food || 10,
+        water: oldState.resources?.water || 15,
+        materials: oldState.resources?.materials || 5,
+        people: oldState.resources?.people || 3
+      },
+      buildings: {
+        shelters: oldState.buildings?.shelters || 1,
+        farms: oldState.buildings?.farms || 0,
+        cisterns: oldState.buildings?.cisterns || 0,
+        workshops: oldState.buildings?.workshops || 0
+      },
+      events: oldState.events || [],
+      discoveries: oldState.discoveries || [],
+      survivors: oldState.survivors || [],
+      leadershipScore: oldState.leadershipScore || 0,
+      storyPhase: oldState.storyPhase || 'awakening'
+    };
+    
+    console.log("Upgraded game state to version", this.gameVersion);
+    this.saveGame();
   }
   
   startGame() {
@@ -470,6 +522,8 @@ class ReclaimedGame {
   
   saveGame() {
     try {
+      // Ensure the version is saved with the game state
+      this.gameState.version = this.gameVersion;
       localStorage.setItem('reclaimedGameSave', JSON.stringify(this.gameState));
     } catch (e) {
       console.error("Error saving game:", e);
@@ -479,6 +533,7 @@ class ReclaimedGame {
   resetGame() {
     localStorage.removeItem('reclaimedGameSave');
     this.gameState = {
+      version: this.gameVersion,
       day: 1,
       resources: {
         food: 10,

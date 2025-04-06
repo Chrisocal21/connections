@@ -596,6 +596,7 @@
                             <p>People Rescued: <span id="people-rescued">0</span></p>
                             <p>Explored Area: <span id="explored-area">5%</span></p>
                             <p>Discoveries Found: <span id="discoveries-count">0</span></p>
+                            <p>Game Version: <span id="game-version">1.1.0</span></p>
                         </div>
                     </div>
                 </div>
@@ -606,6 +607,9 @@
                         <button id="build-farm-btn" disabled>Build Farm (3 materials)</button>
                         <button id="build-cistern-btn" disabled>Build Cistern (4 materials)</button>
                         <button id="build-workshop-btn" disabled>Build Workshop (5 materials)</button>
+                    </div>
+                    <div style="margin-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 10px;">
+                        <button id="reset-game-btn" style="background-color: #a02c2c;">Reset Game Data</button>
                     </div>
                 </div>
             </div>
@@ -636,6 +640,8 @@
         const survivorList = document.getElementById('survivor-list');
         const discoveryList = document.getElementById('discovery-list');
         const warningIndicator = document.getElementById('warning-indicator');
+        const gameVersionDisplay = document.getElementById('game-version');
+        const resetGameBtn = document.getElementById('reset-game-btn');
         
         // Phase markers
         const phaseAwakening = document.getElementById('phase-awakening');
@@ -691,6 +697,15 @@
             });
         });
         
+        // Reset game button functionality
+        resetGameBtn.addEventListener('click', () => {
+            if (confirm("Are you sure you want to reset your game progress? This cannot be undone.")) {
+                game.resetGame();
+                alert("Game data has been reset. The game will now reload.");
+                location.reload();
+            }
+        });
+        
         // Visualization toggle functionality
         visualizationToggles.forEach(toggle => {
             toggle.addEventListener('click', () => {
@@ -735,6 +750,11 @@
             waterValue.textContent = Math.floor(game.gameState.resources.water);
             materialsValue.textContent = Math.floor(game.gameState.resources.materials);
             peopleValue.textContent = game.gameState.resources.people;
+            
+            // Update game version display
+            if (gameVersionDisplay) {
+                gameVersionDisplay.textContent = game.gameState.version || game.gameVersion || "1.1.0";
+            }
             
             // Update survivors tab
             updateSurvivorsList();
