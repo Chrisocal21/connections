@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PWA Icon Generator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            margin-bottom: 30px;
+        }
+        .icons-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .icon-preview {
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>PWA Icon Generator</h1>
+    <p>Click the button below to generate all required PWA icons for the Connections game:</p>
+    <button id="generateIcons">Generate Icons</button>
+    <div class="icons-container" id="iconsContainer"></div>
+
+    <script>
+        document.getElementById('generateIcons').addEventListener('click', function() {
+            const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
+            const container = document.getElementById('iconsContainer');
+            container.innerHTML = '';
+            
+            sizes.forEach(size => {
+                const canvas = document.createElement('canvas');
+                canvas.width = size;
+                canvas.height = size;
+                const ctx = canvas.getContext('2d');
+                
+                // Draw background
+                ctx.fillStyle = '#4285f4';
+                ctx.fillRect(0, 0, size, size);
+                
+                // Draw "C" letter for Connections
+                ctx.fillStyle = '#ffffff';
+                ctx.font = `bold ${size * 0.6}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('C', size / 2, size / 2);
+                
+                // Add a border
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = size * 0.05;
+                ctx.strokeRect(size * 0.1, size * 0.1, size * 0.8, size * 0.8);
+                
+                // Create preview
+                const preview = document.createElement('div');
+                preview.className = 'icon-preview';
+                
+                const img = document.createElement('img');
+                img.src = canvas.toDataURL('image/png');
+                img.style.width = '100px';
+                img.style.height = '100px';
+                
+                const sizeText = document.createElement('p');
+                sizeText.textContent = `${size}x${size}`;
+                
+                const downloadLink = document.createElement('a');
+                downloadLink.href = canvas.toDataURL('image/png');
+                downloadLink.download = `icon-${size}x${size}.png`;
+                downloadLink.textContent = 'Download';
+                
+                preview.appendChild(img);
+                preview.appendChild(sizeText);
+                preview.appendChild(downloadLink);
+                container.appendChild(preview);
+            });
+        });
+    </script>
+</body>
+</html>
