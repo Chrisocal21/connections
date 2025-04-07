@@ -29,6 +29,17 @@ app.get('/reclaimed', (req, res) => {
   res.sendFile(path.join(__dirname, 'games', 'reclaimed.html'));
 });
 
+// Alternative paths for Reclaimed game scripts (fallback routes)
+app.get('/reclaimed/gameLogic.js', (req, res) => {
+  res.setHeader('Content-Type', 'application/javascript');
+  res.sendFile(path.join(__dirname, 'js', 'games', 'reclaimed', 'gameLogic.js'));
+});
+
+app.get('/reclaimed/visualizations.js', (req, res) => {
+  res.setHeader('Content-Type', 'application/javascript');
+  res.sendFile(path.join(__dirname, 'js', 'games', 'reclaimed', 'visualizations.js'));
+});
+
 // Sudoku game route
 app.get('/sudoku', (req, res) => {
   res.sendFile(path.join(__dirname, 'games', 'sudoku.html'));

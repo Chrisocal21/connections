@@ -635,33 +635,152 @@
         function handleScriptError(scriptName) {
             console.error(`Failed to load ${scriptName}. Using inline fallback.`);
             
+            // Create a fallback script - using CDN URLs
             if (scriptName === 'gameLogic') {
-                // Load the gameLogic.js content from GitHub as a fallback
+                // Try loading from a different location with the proper content type
                 const script = document.createElement('script');
-                script.src = 'https://raw.githubusercontent.com/chrisoc19/connections/main/js/games/reclaimed/gameLogic.js';
+                
+                // Try to load directly from the current domain with a different path
+                script.src = `/reclaimed/gameLogic.js?v=${Date.now()}`;
+                script.onload = function() {
+                    console.log("Successfully loaded gameLogic.js from alternate path");
+                    checkScriptsLoaded();
+                };
                 script.onerror = function() {
-                    alert("Failed to load game scripts. Please try clearing your browser cache or use the reset page.");
-                    window.location = '/games/reclaimed-reset.html';
+                    console.error("Failed to load alternate gameLogic.js, attempting localStorage fallback");
+                    
+                    // If we have a cached version in localStorage, use it as last resort
+                    if (localStorage.getItem('reclaimed_gameLogic_fallback')) {
+                        try {
+                            const cachedScript = document.createElement('script');
+                            cachedScript.textContent = localStorage.getItem('reclaimed_gameLogic_fallback');
+                            document.body.appendChild(cachedScript);
+                            console.log("Loaded gameLogic.js from localStorage cache");
+                            checkScriptsLoaded();
+                        } catch (e) {
+                            console.error("Error loading from cache:", e);
+                            showGameLoadError();
+                        }
+                    } else {
+                        showGameLoadError();
+                    }
                 };
                 document.body.appendChild(script);
             } else if (scriptName === 'visualizations') {
-                // Load the visualizations.js content from GitHub as a fallback
+                // Try loading from a different location
                 const script = document.createElement('script');
-                script.src = 'https://raw.githubusercontent.com/chrisoc19/connections/main/js/games/reclaimed/visualizations.js';
+                
+                // Try to load directly from the current domain with a different path
+                script.src = `/reclaimed/visualizations.js?v=${Date.now()}`;
+                script.onload = function() {
+                    console.log("Successfully loaded visualizations.js from alternate path");
+                    checkScriptsLoaded();
+                };
                 script.onerror = function() {
-                    alert("Failed to load game scripts. Please try clearing your browser cache or use the reset page.");
-                    window.location = '/games/reclaimed-reset.html';
+                    console.error("Failed to load alternate visualizations.js, attempting localStorage fallback");
+                    
+                    // If we have a cached version in localStorage, use it as last resort
+                    if (localStorage.getItem('reclaimed_visualizations_fallback')) {
+                        try {
+                            const cachedScript = document.createElement('script');
+                            cachedScript.textContent = localStorage.getItem('reclaimed_visualizations_fallback');
+                            document.body.appendChild(cachedScript);
+                            console.log("Loaded visualizations.js from localStorage cache");
+                            checkScriptsLoaded();
+                        } catch (e) {
+                            console.error("Error loading from cache:", e);
+                            showGameLoadError();
+                        }
+                    } else {
+                        showGameLoadError();
+                    }
                 };
                 document.body.appendChild(script);
             }
         }
+        
+        function showGameLoadError() {
+            // Create a full error display
+            const errorDiv = document.createElement('div');
+            errorDiv.style.position = 'fixed';
+            errorDiv.style.top = '0';
+            errorDiv.style.left = '0';
+            errorDiv.style.width = '100%';
+            errorDiv.style.height = '100%';
+            errorDiv.style.backgroundColor = 'rgba(0,0,0,0.9)';
+            errorDiv.style.color = 'white';
+            errorDiv.style.padding = '40px';
+            errorDiv.style.boxSizing = 'border-box';
+            errorDiv.style.zIndex = '9999';
+            errorDiv.style.display = 'flex';
+            errorDiv.style.flexDirection = 'column';
+            errorDiv.style.alignItems = 'center';
+            errorDiv.style.justifyContent = 'center';
+            
+            errorDiv.innerHTML = `
+                <h2 style="color: #ff5555;">Failed to Load Game Resources</h2>
+                <p>We're having trouble loading the necessary scripts for Reclaimed.</p>
+                <p>This could be due to a deployment issue or a browser caching problem.</p>
+                <div style="margin: 20px 0;">
+                    <button id="reloadBtn" style="background: #1E3A5F; color: white; border: none; padding: 12px 20px; margin: 10px; border-radius: 5px; cursor: pointer;">Try Again (Hard Reload)</button>
+                    <button id="clearCacheBtn" style="background: #3A1E5F; color: white; border: none; padding: 12px 20px; margin: 10px; border-radius: 5px; cursor: pointer;">Clear Cache &amp; Reload</button>
+                </div>
+            `;
+            
+            document.body.appendChild(errorDiv);
+            
+            // Add functionality to buttons
+            document.getElementById('reloadBtn').addEventListener('click', function() {
+                location.reload(true);  // Force reload bypassing cache
+            });
+            
+            document.getElementById('clearCacheBtn').addEventListener('click', function() {
+                // Clear localStorage for the game
+                localStorage.removeItem('reclaimedGameSave');
+                localStorage.removeItem('reclaimedVersion');
+                
+                // Reload the page with a cache-busting parameter
+                window.location.href = `/reclaimed?nocache=${Date.now()}`;
+            });
+        }
+        
+        // Try to cache the scripts when they load successfully
+        function cacheScriptForFallback(scriptName, content) {
+            try {
+                localStorage.setItem(`reclaimed_${scriptName}_fallback`, content);
+                console.log(`Cached ${scriptName} for future fallback use`);
+            } catch (e) {
+                console.warn(`Failed to cache ${scriptName}: ${e.message}`);
+            }
+        }
+        
+        // Function to fetch and cache scripts
+        function fetchAndCacheScript(scriptName, url) {
+            fetch(url)
+                .then(response => response.text())
+                .then(content => {
+                    cacheScriptForFallback(scriptName, content);
+                })
+                .catch(error => {
+                    console.error(`Failed to fetch and cache ${scriptName}:`, error);
+                });
+        }
+        
+        // Try to cache the scripts for future use
+        window.addEventListener('load', function() {
+            // Only fetch for caching if the main scripts loaded successfully
+            if (scriptsLoaded === requiredScripts) {
+                fetchAndCacheScript('gameLogic', '/js/games/reclaimed/gameLogic.js');
+                fetchAndCacheScript('visualizations', '/js/games/reclaimed/visualizations.js');
+            }
+        });
     </script>
     
-    <!-- Load external scripts with error handling -->
-    <script src="/js/games/reclaimed/gameLogic.js?v=1.1.0" 
+    <!-- Load external scripts with error handling and cache-busting -->
+    <script src="/js/games/reclaimed/gameLogic.js?v=1.1.1" 
             onload="checkScriptsLoaded()" 
             onerror="handleScriptError('gameLogic')"></script>
-    <script src="/js/games/reclaimed/visualizations.js?v=1.1.0" 
+    <script src="/js/games/reclaimed/visualizations.js?v=1.1.1" 
             onload="checkScriptsLoaded()" 
             onerror="handleScriptError('visualizations')"></script>
     
