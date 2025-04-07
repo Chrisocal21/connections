@@ -418,7 +418,25 @@ class ReclaimedGame {
           newEvent.text = "Met other survivors.";
           newEvent.effect = "people";
           const newPeople = Math.floor(Math.random() * 2) + 1;
-          this.gameState.resources.people += newPeople;
+          
+          // Generate survivor entries before updating people count
+          const survivorTypes = ["Former Teacher", "Ex-Military", "Medical Worker", "Engineer", "Farmer", "Child"];
+          const survivorStories = [
+            "Found during routine scavenging.",
+            "Met while searching for supplies.",
+            "Encountered at an abandoned outpost.",
+            "Found sheltering in a nearby building.",
+            "Discovered foraging in the wilderness."
+          ];
+          
+          for (let i = 0; i < newPeople; i++) {
+            const survivorType = survivorTypes[Math.floor(Math.random() * survivorTypes.length)];
+            const survivorStory = survivorStories[Math.floor(Math.random() * survivorStories.length)];
+            this.addSurvivor(survivorType, survivorStory);
+          }
+          
+          // Update people count to match survivors array length
+          this.gameState.resources.people = this.gameState.survivors.length;
           break;
         case 4: // Story element
           newEvent.type = "story";
@@ -486,11 +504,15 @@ class ReclaimedGame {
           if (this.gameState.leadershipScore > this.gameState.day * 0.5) {
             newEvent.text += " You convinced them to join your settlement instead!";
             const newPeople = Math.floor(Math.random() * 2) + 1;
-            this.gameState.resources.people += newPeople;
-            this.gameState.leadershipScore += 2;
             
-            // Add survivor story
-            this.addSurvivor("Former Bandit", "Initially hostile, they were convinced to join your community through your leadership.");
+            // Add survivor BEFORE increasing people count
+            for (let i = 0; i < newPeople; i++) {
+              this.addSurvivor("Former Bandit", "Initially hostile, they were convinced to join your community through your leadership.");
+            }
+            
+            // Now update people count to match number of survivors
+            this.gameState.resources.people = this.gameState.survivors.length;
+            this.gameState.leadershipScore += 2;
           } else {
             // Resource loss
             const resourceType = Math.random() > 0.5 ? "food" : "materials";
@@ -550,10 +572,11 @@ class ReclaimedGame {
           newEvent.text = `A survivor with ${specialistSkill} knowledge found your settlement.`;
           newEvent.effect = specialistEffect;
           
-          // Add survivor story
+          // Add survivor first
           this.addSurvivor(specialistName, `Brought valuable ${specialistSkill} to your community. Their expertise has greatly improved your settlement's capabilities.`);
           
-          this.gameState.resources.people += 1;
+          // Set people count to match survivors array length
+          this.gameState.resources.people = this.gameState.survivors.length;
           this.gameState.leadershipScore += 1;
           break;
           
@@ -749,9 +772,8 @@ class ReclaimedGame {
     if (resultChance > 0.8) {
       // Found survivors - highest reward but least common
       const newPeople = Math.floor(Math.random() * 2) + 1;
-      this.gameState.resources.people += newPeople;
       
-      // Generate survivor story
+      // Generate survivor story - add survivors BEFORE updating people count
       const survivorTypes = ["Former Teacher", "Ex-Military", "Medical Worker", "Engineer", "Farmer", "Child"];
       const survivorStories = [
         "Found hiding in an abandoned building.",
@@ -766,6 +788,9 @@ class ReclaimedGame {
         const survivorStory = survivorStories[Math.floor(Math.random() * survivorStories.length)];
         this.addSurvivor(survivorType, survivorStory);
       }
+      
+      // Set people count to match survivors array length
+      this.gameState.resources.people = this.gameState.survivors.length;
       
       // Update leadership score based on survivor discovery
       this.calculateLeadershipScore();
