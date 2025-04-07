@@ -1407,26 +1407,78 @@
                 padding: 10px;
             }
         }
+        
+        /* Game header styling */
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(100, 217, 255, 0.2);
+        }
+
+        .header-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #64D9FF;
+            letter-spacing: 2px;
+        }
+
+        .header-indicators {
+            display: flex;
+            gap: 15px;
+        }
+
+        /* Header day counter and leadership badge */
+        .game-header .day-counter, 
+        .game-header .leadership-badge {
+            background-color: rgba(30, 30, 30, 0.8);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            position: static;
+            display: flex;
+            align-items: center;
+        }
+
+        .game-header .day-counter {
+            color: #FFD700;
+        }
+
+        .game-header .leadership-badge {
+            color: #FF9EFF;
+        }
+
+        @media (max-width: 768px) {
+            .game-header {
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+            }
+            
+            .mobile-icon-tabs {
+                display: flex;
+            }
+        }
     </style>
 </head>
 <body>
     <a href="/" class="back-button">← Back</a>
-    <div class="day-counter" id="day-display">Day 1</div>
-    <div class="leadership-badge" id="leadership-display"><span class="leadership-icon">👑</span> Leadership: 0</div>
-    
-    <div class="indicator-container">
-        <div class="mobile-indicator mobile-day">
-            <span>☀️</span> <span id="mobile-day-display">1</span>
-        </div>
-        <div class="mobile-indicator mobile-leadership">
-            <span>👑</span> <span id="mobile-leadership-display">0</span>
-        </div>
-    </div>
     
     <h1>RECLAIMED</h1>
     <p>After The Quiet Reset, a silent world awaits…</p>
     
     <div id="game-container">
+        <!-- Game Header with Day Counter and Leadership -->
+        <div class="game-header">
+            <div class="header-title">RECLAIMED</div>
+            <div class="header-indicators">
+                <div class="day-counter">Day <span id="day-counter">1</span></div>
+                <div class="leadership-badge">Leadership <span id="leadership-value">0</span></div>
+            </div>
+        </div>
+        
         <div id="game-status-container">
             <div id="game-status">You wake from cryosleep. The world is silent. Your pod is one of few that survived.</div>
         </div>
@@ -1450,19 +1502,19 @@
             <div class="resources">
                 <div class="resource">
                     <div>Food</div>
-                    <div class="resource-value" id="food-value">10</div>
+                    <div class="resource-value" id="food-value">3</div>
                 </div>
                 <div class="resource">
                     <div>Water</div>
-                    <div class="resource-value" id="water-value">15</div>
+                    <div class="resource-value" id="water-value">5</div>
                 </div>
                 <div class="resource">
                     <div>Materials</div>
-                    <div class="resource-value" id="materials-value">5</div>
+                    <div class="resource-value" id="materials-value">2</div>
                 </div>
                 <div class="resource">
                     <div>People</div>
-                    <div class="resource-value" id="people-value">3</div>
+                    <div class="resource-value" id="people-value">0</div>
                 </div>
             </div>
         </div>
@@ -1713,6 +1765,18 @@
     </div>
     
     <div class="warning-indicator" id="warning-indicator">Resources critically low!</div>
+    
+    <!-- Mobile Icon Tabs (fixed at bottom of screen on mobile) -->
+    <div class="mobile-icon-tabs">
+        <button class="tab-button tab-events active" data-tab="events">📜</button>
+        <button class="tab-button tab-journal" data-tab="journal">📓</button>
+        <button class="tab-button tab-survivors" data-tab="survivors">👥</button>
+        <button class="tab-button tab-story" data-tab="story">📖</button>
+        <button class="tab-button tab-map" data-tab="map">🗺️</button>
+        <button class="tab-button tab-analytics" data-tab="analytics">📊</button>
+        <button class="tab-button tab-settlement" data-tab="settlement">🏠</button>
+        <button class="tab-button tab-save" data-tab="save">💾</button>
+    </div>
     
     <!-- Inline fallback scripts to ensure the game always loads even if external JS fails -->
     <script>
@@ -2266,211 +2330,8 @@
                 
                 discoveryList.appendChild(discoveryItem);
             });
-            
-            // If no discoveries yet
-            if (game.gameState.discoveries.length === 0) {
-                const emptyMessage = document.createElement('div');
-                emptyMessage.textContent = 'No discoveries yet. Explore to learn more about The Quiet Reset.';
-                emptyMessage.style.fontStyle = 'italic';
-                discoveryList.appendChild(emptyMessage);
-            }
         }
         
-        function updateStoryPhase() {
-            // Reset all phases
-            phaseAwakening.classList.remove('active');
-            phaseSurvival.classList.remove('active');
-            phaseExpansion.classList.remove('active');
-            phaseRevelation.classList.remove('active');
-            
-            // Set active phases based on current phase
-            switch(game.gameState.storyPhase) {
-                case 'awakening':
-                    phaseAwakening.classList.add('active');
-                    phaseLabel.textContent = 'Phase: Awakening';
-                    break;
-                case 'survival':
-                    phaseAwakening.classList.add('active');
-                    phaseSurvival.classList.add('active');
-                    phaseLabel.textContent = 'Phase: Survival';
-                    break;
-                case 'expansion':
-                    phaseAwakening.classList.add('active');
-                    phaseSurvival.classList.add('active');
-                    phaseExpansion.classList.add('active');
-                    phaseLabel.textContent = 'Phase: Expansion';
-                    break;
-                case 'revelation':
-                    phaseAwakening.classList.add('active');
-                    phaseSurvival.classList.add('active');
-                    phaseExpansion.classList.add('active');
-                    phaseRevelation.classList.add('active');
-                    phaseLabel.textContent = 'Phase: Revelation';
-                    break;
-            }
-        }
-        
-        // Add event to log
-        function logEvent(message) {
-            const eventEntry = document.createElement('div');
-            eventEntry.className = 'event-entry';
-            eventEntry.textContent = `Day ${game.gameState.day}: ${message}`;
-            eventLog.prepend(eventEntry);
-        }
-        
-        // Action: Scavenge for resources
-        scavengeBtn.addEventListener('click', () => {
-            // Check if action can be performed
-            if (!game.useAction()) {
-                gameStatus.textContent = "You're too tired to scavenge. Rest until tomorrow.";
-                return;
-            }
-            
-            const foodFound = Math.floor(Math.random() * 4);
-            const waterFound = Math.floor(Math.random() * 5);
-            const materialsFound = Math.floor(Math.random() * 3);
-            
-            game.gameState.resources.food += foodFound;
-            game.gameState.resources.water += waterFound;
-            game.gameState.resources.materials += materialsFound;
-            
-            gameStatus.textContent = `You found some supplies while scavenging!`;
-            logEvent(`Found ${foodFound} food, ${waterFound} water, and ${materialsFound} materials while scavenging.`);
-            
-            updateUI();
-        });
-        
-        // Action: Build shelter
-        buildBtn.addEventListener('click', () => {
-            // Check if action can be performed
-            if (!game.useAction()) {
-                gameStatus.textContent = "You're too tired to build. Rest until tomorrow.";
-                return;
-            }
-            
-            if (game.gameState.resources.materials >= 2) {
-                game.gameState.resources.materials -= 2;
-                game.gameState.buildings.shelters += 1;
-                
-                gameStatus.textContent = "You've improved your shelter!";
-                logEvent("Built additional shelter, increasing safety and capacity.");
-                
-                updateUI();
-            }
-        });
-        
-        // Action: Explore area
-        exploreBtn.addEventListener('click', () => {
-            // Check if action can be performed
-            if (!game.useAction()) {
-                gameStatus.textContent = "You're too tired to explore. Rest until tomorrow.";
-                return;
-            }
-            
-            const result = game.explore();
-            
-            gameStatus.textContent = result.message;
-            logEvent(result.message);
-            
-            updateUI();
-        });
-        
-        // Action: Next day
-        nextDayBtn.addEventListener('click', () => {
-            // Advance to next day
-            game.advanceDay();
-            
-            // Get latest event
-            let latestEvent = game.gameState.events[game.gameState.events.length - 1];
-            
-            if (latestEvent && latestEvent.day === game.gameState.day) {
-                gameStatus.textContent = latestEvent.text;
-                logEvent(latestEvent.text);
-            } else {
-                gameStatus.textContent = `Day ${game.gameState.day} begins. Your small community survives another day.`;
-                logEvent("Another day passes in the silent world.");
-            }
-            
-            updateUI();
-        });
-        
-        // New building action handlers
-        buildFarmBtn.addEventListener('click', () => {
-            if (game.buildStructure('farm')) {
-                gameStatus.textContent = "You've built a new farm! This will increase your food production.";
-                logEvent("Built a farm to increase sustainable food production.");
-                updateUI();
-            }
-        });
-        
-        buildCisternBtn.addEventListener('click', () => {
-            if (game.buildStructure('cistern')) {
-                gameStatus.textContent = "You've built a cistern! This will help collect and purify water.";
-                logEvent("Built a cistern to improve water collection and storage.");
-                updateUI();
-            }
-        });
-        
-        buildWorkshopBtn.addEventListener('click', () => {
-            if (game.buildStructure('workshop')) {
-                gameStatus.textContent = "You've built a workshop! This will help produce materials and tools.";
-                logEvent("Built a workshop to manufacture tools and process materials.");
-                updateUI();
-            }
-        });
-        
-        // New elements for story
-        const journalEntriesList = document.getElementById('journal-entries-list');
-        const weatherIcon = document.getElementById('weather-icon');
-        const weatherType = document.getElementById('weather-type');
-        const weatherDescription = document.getElementById('weather-description');
-        const actionsRemaining = document.getElementById('actions-remaining');
-        const maxActions = document.getElementById('max-actions');
-        
-        // Update journal entries
-        function updateJournalEntries() {
-            // Clear current entries
-            journalEntriesList.innerHTML = '';
-            
-            if (game.gameState.journal.length === 0) {
-                const emptyMessage = document.createElement('div');
-                emptyMessage.className = 'empty-journal-message';
-                emptyMessage.textContent = 'No journal entries found yet. Continue your journey to discover more.';
-                journalEntriesList.appendChild(emptyMessage);
-                return;
-            }
-            
-            // Add each journal entry
-            game.gameState.journal.forEach(entry => {
-                const journalEntry = document.createElement('div');
-                journalEntry.className = 'journal-entry';
-                
-                const titleElement = document.createElement('div');
-                titleElement.className = 'journal-title';
-                titleElement.textContent = entry.title;
-                
-                const authorElement = document.createElement('div');
-                authorElement.className = 'journal-author';
-                authorElement.textContent = `By ${entry.author}`;
-                
-                const textElement = document.createElement('div');
-                textElement.className = 'journal-text';
-                textElement.textContent = entry.text;
-                
-                const dayElement = document.createElement('div');
-                dayElement.className = 'journal-day';
-                dayElement.textContent = `Found on Day ${entry.day}`;
-                
-                journalEntry.appendChild(titleElement);
-                journalEntry.appendChild(authorElement);
-                journalEntry.appendChild(textElement);
-                journalEntry.appendChild(dayElement);
-                
-                journalEntriesList.appendChild(journalEntry);
-            });
-        }
-        
-        // Update weather display
         function updateWeatherDisplay() {
             const weather = game.gameState.weather;
             
