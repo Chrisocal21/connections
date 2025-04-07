@@ -1335,10 +1335,35 @@
         }
         
         function updateSurvivorsList() {
-            // Clear current list except for the player
-            while (survivorList.children.length > 1) {
-                survivorList.removeChild(survivorList.lastChild);
-            }
+            // Clear current list 
+            survivorList.innerHTML = '';
+            
+            // Add player as leader
+            const playerCard = document.createElement('div');
+            playerCard.className = 'survivor-card';
+            
+            const nameElement = document.createElement('div');
+            nameElement.className = 'survivor-name';
+            nameElement.textContent = "You (Leader)";
+            
+            const detailElement = document.createElement('div');
+            detailElement.className = 'survivor-detail';
+            detailElement.textContent = "Awakened from cryosleep on Day 1";
+            
+            const skillsElement = document.createElement('div');
+            skillsElement.className = 'survivor-skills';
+            
+            ["Leadership", "Adaptability"].forEach(skill => {
+                const skillBadge = document.createElement('div');
+                skillBadge.className = 'survivor-skill';
+                skillBadge.textContent = skill;
+                skillsElement.appendChild(skillBadge);
+            });
+            
+            playerCard.appendChild(nameElement);
+            playerCard.appendChild(detailElement);
+            playerCard.appendChild(skillsElement);
+            survivorList.appendChild(playerCard);
             
             // Add each survivor
             game.gameState.survivors.forEach(survivor => {

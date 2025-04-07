@@ -119,6 +119,41 @@ class ReclaimedGame {
       }
     };
     
+    // Initialize survivor data
+    this.survivors = [
+      {
+        id: "player",
+        type: "You (Leader)",
+        backstory: "Awakened from cryosleep on Day 1",
+        joinedDay: 1,
+        skills: ["Leadership", "Adaptability"]
+      }
+    ];
+    
+    // Leadership recognition events
+    this.leadershipEvents = [
+      {
+        day: 3,
+        text: "The small group has begun to look to you for guidance. Your decisions matter.",
+        leadershipGain: 1
+      },
+      {
+        day: 5,
+        text: "Your consistent leadership through difficult times has earned you respect. The survivors officially recognize you as their leader.",
+        leadershipGain: 2
+      },
+      {
+        day: 8,
+        text: "Your strategic decisions have kept everyone alive. Your authority in the community is growing.",
+        leadershipGain: 2
+      },
+      {
+        day: 12,
+        text: "Word of your leadership has spread to other survivor groups. Some are considering joining your community.",
+        leadershipGain: 3
+      }
+    ];
+    
     // Story-driven quests
     this.quests = {
       "awakening": {
@@ -294,6 +329,18 @@ class ReclaimedGame {
     
     // Check for journal entries
     const journalEntry = this.unlockJournalEntry();
+    
+    // Check for leadership events
+    const leadershipEvent = this.checkLeadershipEvents();
+    if (leadershipEvent) {
+      this.gameState.events.push({
+        day: this.gameState.day,
+        type: "leadership",
+        text: leadershipEvent.text,
+        effect: "leadership_gain"
+      });
+      this.gameState.leadershipScore += leadershipEvent.leadershipGain;
+    }
     
     // Determine event type based on day progression
     if (this.gameState.day > 5) {
@@ -776,6 +823,12 @@ class ReclaimedGame {
     }
     
     return null;
+  }
+
+  // Check for leadership events based on the current day
+  checkLeadershipEvents() {
+    // Check if there's a leadership event for this day
+    return this.leadershipEvents.find(event => event.day === this.gameState.day);
   }
 
   // Handle action limits
