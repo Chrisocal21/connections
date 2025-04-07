@@ -16,10 +16,10 @@ class ReclaimedGame {
         food: 10,
         water: 15,
         materials: 5,
-        people: 3
+        people: 0
       },
       buildings: {
-        shelters: 1,
+        shelters: 0,
         farms: 0,
         cisterns: 0,
         workshops: 0
@@ -32,7 +32,8 @@ class ReclaimedGame {
       journal: [], // New array to store journal entries
       actionsRemaining: 5, // Add daily action limit
       maxActionsPerDay: 5, // Max actions per day
-      weather: 'Clear' // Current weather
+      weather: 'Clear', // Current weather
+      exploredArea: 0 // Add exploration tracking
     };
     
     // Initialize story journal entries
@@ -287,10 +288,10 @@ class ReclaimedGame {
         food: oldState.resources?.food || 10,
         water: oldState.resources?.water || 15,
         materials: oldState.resources?.materials || 5,
-        people: oldState.resources?.people || 3
+        people: oldState.resources?.people || 0
       },
       buildings: {
-        shelters: oldState.buildings?.shelters || 1,
+        shelters: oldState.buildings?.shelters || 0,
         farms: oldState.buildings?.farms || 0,
         cisterns: oldState.buildings?.cisterns || 0,
         workshops: oldState.buildings?.workshops || 0
@@ -303,7 +304,8 @@ class ReclaimedGame {
       journal: oldState.journal || [],
       actionsRemaining: oldState.actionsRemaining || 5,
       maxActionsPerDay: oldState.maxActionsPerDay || 5,
-      weather: oldState.weather || 'Clear'
+      weather: oldState.weather || 'Clear',
+      exploredArea: oldState.exploredArea || 0
     };
     
     console.log("Upgraded game state to version", this.gameVersion);
@@ -330,16 +332,19 @@ class ReclaimedGame {
     // Check for journal entries
     const journalEntry = this.unlockJournalEntry();
     
-    // Check for leadership events
-    const leadershipEvent = this.checkLeadershipEvents();
-    if (leadershipEvent) {
-      this.gameState.events.push({
+    // Calculate dynamic leadership score instead of using fixed events
+    const previousLeadership = this.gameState.leadershipScore;
+    const newLeadership = this.calculateLeadershipScore();
+    
+    // If leadership increased significantly, create an event
+    if (newLeadership - previousLeadership >= 2) {
+      const leadershipEvent = {
         day: this.gameState.day,
         type: "leadership",
-        text: leadershipEvent.text,
+        text: "Your leadership in the community has grown as you continue to build and provide for your people.",
         effect: "leadership_gain"
-      });
-      this.gameState.leadershipScore += leadershipEvent.leadershipGain;
+      };
+      this.gameState.events.push(leadershipEvent);
     }
     
     // Determine event type based on day progression
@@ -691,25 +696,20 @@ class ReclaimedGame {
     switch(type) {
       case 'shelter':
         this.gameState.buildings.shelters++;
-        // Leadership bonus for providing shelter
-        this.gameState.leadershipScore += 1;
         break;
       case 'farm':
         this.gameState.buildings.farms++;
-        // Knowledge of sustainable food increases leadership
-        this.gameState.leadershipScore += 1;
         break;
       case 'cistern':
         this.gameState.buildings.cisterns++;
-        // Water security increases leadership
-        this.gameState.leadershipScore += 1;
         break;
       case 'workshop':
         this.gameState.buildings.workshops++;
-        // Technical advancement increases leadership
-        this.gameState.leadershipScore += 2;
         break;
     }
+    
+    // Calculate new leadership score after building construction
+    this.calculateLeadershipScore();
     
     // Log building construction in events
     const buildingEvent = {
@@ -725,8 +725,7 @@ class ReclaimedGame {
     return {
       success: true,
       message: `Successfully built a ${type}!`,
-      benefit: benefits[type],
-      leadershipGain: type === 'workshop' ? 2 : 1
+      benefit: benefits[type]
     };
   }
   
@@ -741,6 +740,10 @@ class ReclaimedGame {
     
     const resultChance = Math.random();
     let result = {};
+    
+    // Update exploration area percentage (increases slightly with each exploration)
+    const exploreIncrease = Math.floor(Math.random() * 3) + 1; // 1-3% increase
+    this.gameState.exploredArea = Math.min(100, (this.gameState.exploredArea || 0) + exploreIncrease);
     
     // Enhanced exploration outcomes with more variety
     if (resultChance > 0.8) {
@@ -764,12 +767,13 @@ class ReclaimedGame {
         this.addSurvivor(survivorType, survivorStory);
       }
       
-      // Leadership bonus for finding survivors
-      this.gameState.leadershipScore += newPeople;
+      // Update leadership score based on survivor discovery
+      this.calculateLeadershipScore();
       
       result = {
         type: 'survivors',
         amount: newPeople,
+        exploredAreaIncrease: exploreIncrease,
         message: `Found ${newPeople} survivor${newPeople > 1 ? 's' : ''}!`
       };
     } else if (resultChance > 0.6) {
@@ -788,6 +792,7 @@ class ReclaimedGame {
         
         result = {
           type: 'settlement',
+          exploredAreaIncrease: exploreIncrease,
           message: `Discovered an abandoned settlement with supplies! Found ${foodFound} food, ${waterFound} water, and ${materialsFound} materials.`
         };
       } else {
@@ -799,21 +804,27 @@ class ReclaimedGame {
         
         result = {
           type: 'settlement',
+          exploredAreaIncrease: exploreIncrease,
           message: `Found a specialized ${resourceType === "food" ? "farm" : "workshop"} settlement! Gathered ${amountFound} ${resourceType}.`
         };
       }
+      
+      // Resources found might affect leadership
+      this.calculateLeadershipScore();
     } else if (resultChance > 0.4) {
       // Found map or journal
       if (Math.random() > 0.5) {
         // Found map - reveals more area on the map visualization
         const revealedArea = Math.floor(Math.random() * 5) + 5;
         
-        // Maps will help with future explorations (leadership bonus)
-        this.gameState.leadershipScore += 1;
+        // Additional explored area increase from finding a map
+        const mapBonus = Math.floor(Math.random() * 5) + 3; // 3-7% additional increase
+        this.gameState.exploredArea = Math.min(100, this.gameState.exploredArea + mapBonus);
         
         result = {
           type: 'map',
           revealArea: revealedArea,
+          exploredAreaIncrease: exploreIncrease + mapBonus,
           message: `Found a detailed map of the area! This will help with future explorations.`
         };
       } else {
@@ -841,12 +852,13 @@ class ReclaimedGame {
         // Add to player's journal
         this.gameState.journal.push(newJournalEntry);
         
-        // Knowledge increases leadership
-        this.gameState.leadershipScore += 1;
+        // Knowledge from journals affects leadership
+        this.calculateLeadershipScore();
         
         result = {
           type: 'journal',
           entry: newJournalEntry,
+          exploredAreaIncrease: exploreIncrease,
           message: `Found a journal from ${journalAuthor} about ${journalTopic}!`
         };
       }
@@ -858,6 +870,7 @@ class ReclaimedGame {
       result = {
         type: 'materials',
         amount: materialsFound,
+        exploredAreaIncrease: exploreIncrease,
         message: `Found ${materialsFound} materials from an abandoned structure.`
       };
     } else {
@@ -872,6 +885,7 @@ class ReclaimedGame {
       
       result = {
         type: 'nothing',
+        exploredAreaIncrease: exploreIncrease,
         message: minorFinds[Math.floor(Math.random() * minorFinds.length)]
       };
     }
@@ -948,10 +962,10 @@ class ReclaimedGame {
         food: 10,
         water: 15,
         materials: 5,
-        people: 3
+        people: 0
       },
       buildings: {
-        shelters: 1,
+        shelters: 0,
         farms: 0,
         cisterns: 0,
         workshops: 0
@@ -964,7 +978,8 @@ class ReclaimedGame {
       journal: [],
       actionsRemaining: 5,
       maxActionsPerDay: 5,
-      weather: 'Clear'
+      weather: 'Clear',
+      exploredArea: 0
     };
     this.saveGame();
   }
@@ -1128,7 +1143,10 @@ class ReclaimedGame {
     };
     
     this.gameState.events.push(questEvent);
-    this.gameState.leadershipScore += 3;
+    
+    // Update leadership based on new journal entry and other factors
+    this.calculateLeadershipScore();
+    
     this.saveGame();
     
     return true;
@@ -1248,5 +1266,48 @@ class ReclaimedGame {
       console.error("Error deleting save:", e);
       return false;
     }
+  }
+
+  // Calculate leadership score based on settlement factors
+  calculateLeadershipScore() {
+    // Base leadership variables
+    let baseScore = 0;
+    let peopleMultiplier = 1.0;
+    let resourceScore = 0;
+    let buildingScore = 0;
+    let knowledgeScore = 0;
+    
+    // 1. People factor - more survivors means more influence needed
+    const peopleFactor = this.gameState.resources.people * 0.5;
+    peopleMultiplier = this.gameState.resources.people > 0 ? 1.0 + (this.gameState.resources.people * 0.1) : 1.0;
+    
+    // 2. Resource management factor - having excess resources shows good planning
+    const totalResources = this.gameState.resources.food + this.gameState.resources.water + this.gameState.resources.materials;
+    const minResourcesNeeded = this.gameState.resources.people * 2 + 5; // Rough calculation of minimum needed
+    
+    if (totalResources > minResourcesNeeded) {
+      resourceScore = Math.min(5, Math.floor((totalResources - minResourcesNeeded) / 5));
+    }
+    
+    // 3. Building factor - more structures show better settlement development
+    const totalBuildings = this.gameState.buildings.shelters + 
+                          this.gameState.buildings.farms + 
+                          this.gameState.buildings.cisterns + 
+                          this.gameState.buildings.workshops;
+    buildingScore = totalBuildings * 0.5;
+    
+    // 4. Knowledge factor - journals and discoveries represent knowledge
+    knowledgeScore = (this.gameState.journal.length * 0.3) + (this.gameState.discoveries.length * 0.7);
+    
+    // 5. Day factor - very minor natural growth over time
+    const dayFactor = Math.floor(this.gameState.day / 5) * 0.2;
+    
+    // Calculate total leadership score, applying people multiplier to make it harder with more people
+    const calculatedScore = Math.floor((peopleFactor + resourceScore + buildingScore + knowledgeScore + dayFactor) * peopleMultiplier);
+    
+    // Ensure leadership never decreases from previous high point
+    this.gameState.leadershipScore = Math.max(calculatedScore, this.gameState.leadershipScore);
+    
+    return this.gameState.leadershipScore;
   }
 }

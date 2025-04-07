@@ -335,7 +335,8 @@
                 margin: 10px auto;
             }
             
-            .day-counter, .leadership-badge {
+            .game-header .day-counter, 
+            .game-header .leadership-badge {
                 display: none; /* Hide desktop versions on mobile */
             }
             
@@ -1874,7 +1875,7 @@
             errorDiv.style.zIndex = '9999';
             errorDiv.style.display = 'flex';
             errorDiv.style.flexDirection = 'column';
-            errorDiv.style.alignItems = 'center';
+            errorDiv.style.alignItems: 'center';
             errorDiv.style.justifyContent = 'center';
             
             errorDiv.innerHTML = `
@@ -2379,14 +2380,26 @@
         }
         
         function updateUI() {
-            // Update day display
+            // Update day display - both desktop and mobile versions
             if (dayDisplay) {
                 dayDisplay.textContent = game.gameState.day;
             }
             
-            // Update leadership display
+            // Update mobile day counter if it exists
+            const mobileDayDisplay = document.getElementById('mobile-day-display');
+            if (mobileDayDisplay) {
+                mobileDayDisplay.textContent = game.gameState.day;
+            }
+            
+            // Update leadership display - both desktop and mobile versions
             if (leadershipDisplay) {
                 leadershipDisplay.textContent = game.gameState.leadershipScore;
+            }
+            
+            // Update mobile leadership counter if it exists
+            const mobileLeadershipDisplay = document.getElementById('mobile-leadership-display');
+            if (mobileLeadershipDisplay) {
+                mobileLeadershipDisplay.textContent = game.gameState.leadershipScore;
             }
             
             // Update resource displays
@@ -2443,7 +2456,21 @@
             // Update settlement stats
             if (daysSurvived) daysSurvived.textContent = game.gameState.day;
             if (peopleRescued) peopleRescued.textContent = game.gameState.survivors.length;
-            if (exploredArea) exploredArea.textContent = Math.min(100, Math.floor(5 + (game.gameState.day * 3))) + '%';
+            
+            // Update explored area using actual data from game state if available
+            if (exploredArea) {
+                const areaPercentage = game.gameState.exploredArea !== undefined ? 
+                    game.gameState.exploredArea : 
+                    Math.min(100, Math.floor(5 + (game.gameState.day * 3)));
+                exploredArea.textContent = areaPercentage + '%';
+                
+                // Also update exploration percentage in map tab
+                const explorationPercentage = document.getElementById('exploration-percentage');
+                if (explorationPercentage) {
+                    explorationPercentage.textContent = areaPercentage + '%';
+                }
+            }
+            
             if (discoveriesCount) discoveriesCount.textContent = game.gameState.discoveries.length;
             
             // Update building buttons
@@ -2651,25 +2678,6 @@
             });
         }
         
-        // Add mobile indicators to the container
-        const indicatorContainer = document.createElement('div');
-        indicatorContainer.className = 'indicator-container';
-        indicatorContainer.innerHTML = `
-            <div class="mobile-indicator mobile-day">
-                <span>Day</span>
-                <span id="mobile-day-display">${game.gameState.day}</span>
-            </div>
-            <div class="mobile-indicator mobile-leadership">
-                <span>Leadership</span>
-                <span id="mobile-leadership-display">${game.gameState.leadershipScore}</span>
-            </div>
-        `;
-        
-        // Insert after game-header
-        const gameHeader = document.querySelector('.game-header');
-        if (gameHeader && !document.querySelector('.indicator-container')) {
-            gameHeader.parentNode.insertBefore(indicatorContainer, gameHeader.nextSibling);
-        }
     </script>
     
     <footer class="repo-footer">
