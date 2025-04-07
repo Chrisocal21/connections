@@ -911,4 +911,120 @@ class ReclaimedGame {
     
     return true;
   }
+
+  // Add multiple save slots functionality
+  saveGameToSlot(slotNumber) {
+    if (slotNumber < 1 || slotNumber > 3) {
+      console.error("Invalid save slot number. Must be 1-3.");
+      return false;
+    }
+    
+    try {
+      const saveKey = `reclaimedGameSave_slot${slotNumber}`;
+      const saveDate = new Date().toLocaleString();
+      
+      // Add metadata to the save
+      const saveData = {
+        ...this.gameState,
+        meta: {
+          savedAt: saveDate,
+          days: this.gameState.day,
+          people: this.gameState.resources.people,
+          leadership: this.gameState.leadershipScore
+        }
+      };
+      
+      localStorage.setItem(saveKey, JSON.stringify(saveData));
+      console.log(`Game saved to slot ${slotNumber}`);
+      return true;
+    } catch (e) {
+      console.error("Error saving game to slot:", e);
+      return false;
+    }
+  }
+  
+  // Load game from a specific slot
+  loadGameFromSlot(slotNumber) {
+    if (slotNumber < 1 || slotNumber > 3) {
+      console.error("Invalid save slot number. Must be 1-3.");
+      return false;
+    }
+    
+    try {
+      const saveKey = `reclaimedGameSave_slot${slotNumber}`;
+      const savedData = localStorage.getItem(saveKey);
+      
+      if (!savedData) {
+        console.log(`No save found in slot ${slotNumber}`);
+        return false;
+      }
+      
+      const parsedState = JSON.parse(savedData);
+      
+      // Remove metadata before setting game state
+      if (parsedState.meta) {
+        delete parsedState.meta;
+      }
+      
+      this.gameState = parsedState;
+      console.log(`Game loaded from slot ${slotNumber}`);
+      return true;
+    } catch (e) {
+      console.error("Error loading game from slot:", e);
+      return false;
+    }
+  }
+  
+  // Get information about saves in all slots
+  getSaveSlotInfo() {
+    const saveInfo = [];
+    
+    for (let i = 1; i <= 3; i++) {
+      const saveKey = `reclaimedGameSave_slot${i}`;
+      const savedData = localStorage.getItem(saveKey);
+      
+      if (savedData) {
+        try {
+          const parsed = JSON.parse(savedData);
+          saveInfo.push({
+            slot: i,
+            isEmpty: false,
+            ...parsed.meta
+          });
+        } catch (e) {
+          saveInfo.push({
+            slot: i,
+            isEmpty: false,
+            error: true,
+            savedAt: "Error reading save"
+          });
+        }
+      } else {
+        saveInfo.push({
+          slot: i,
+          isEmpty: true
+        });
+      }
+    }
+    
+    return saveInfo;
+  }
+  
+  // Delete a save from a specific slot
+  deleteSaveInSlot(slotNumber) {
+    if (slotNumber < 1 || slotNumber > 3) {
+      console.error("Invalid save slot number. Must be 1-3.");
+      return false;
+    }
+    
+    try {
+      const saveKey = `reclaimedGameSave_slot${slotNumber}`;
+      localStorage.removeItem(saveKey);
+      console.log(`Save in slot ${slotNumber} deleted`);
+      return true;
+    } catch (e) {
+      console.error("Error deleting save:", e);
+      return false;
+    }
+  }
 }

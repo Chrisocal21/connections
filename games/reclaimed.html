@@ -588,6 +588,95 @@
             color: #8be9a0;
             text-decoration: line-through;
         }
+        .save-slots-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .save-slot {
+            background-color: rgba(40, 40, 40, 0.8);
+            border-radius: 5px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .save-slot h4 {
+            margin-top: 0;
+            color: #64D9FF;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 8px;
+        }
+
+        .save-info {
+            flex-grow: 1;
+            margin-bottom: 15px;
+            min-height: 60px;
+            font-style: italic;
+            color: #aaa;
+        }
+
+        .save-info.has-save {
+            color: #eee;
+            font-style: normal;
+        }
+
+        .save-slot-meta {
+            font-size: 0.9em;
+            margin: 5px 0;
+        }
+
+        .save-slot-meta span {
+            font-weight: bold;
+            color: #64D9FF;
+        }
+
+        .save-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .save-buttons button {
+            padding: 8px 0;
+            font-size: 0.9em;
+        }
+
+        .delete-button {
+            grid-column: span 2;
+            background-color: #8B3A3A;
+        }
+
+        .delete-button:hover:not(:disabled) {
+            background-color: #a03c3c;
+        }
+
+        .reset-game-section {
+            text-align: center;
+        }
+
+        #reset-game-button {
+            margin-top: 10px;
+        }
+        .message-box {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(30, 58, 95, 0.9);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 1001;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            transition: opacity 0.5s ease;
+        }
+
+        .message-box.fade-out {
+            opacity: 0;
+        }
     </style>
 </head>
 <body>
@@ -657,6 +746,7 @@
                 <button class="tab-button" data-tab="map">Map</button>
                 <button class="tab-button" data-tab="analytics">Analytics</button>
                 <button class="tab-button" data-tab="settlement">Settlement</button>
+                <button class="tab-button" data-tab="save">Save & Load</button>
             </div>
             
             <div class="tab-content active" id="events-tab">
@@ -770,6 +860,44 @@
                     <div style="margin-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 10px;">
                         <button id="reset-game-btn" style="background-color: #a02c2c;">Reset Game Data</button>
                     </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="save-tab">
+                <h3>Save & Load Game</h3>
+                <div class="save-slots-container">
+                    <div class="save-slot" id="save-slot-1">
+                        <h4>Save Slot 1</h4>
+                        <div class="save-info">No save data</div>
+                        <div class="save-buttons">
+                            <button class="save-button" data-slot="1">Save Game</button>
+                            <button class="load-button" data-slot="1" disabled>Load Game</button>
+                            <button class="delete-button" data-slot="1" disabled>Delete Save</button>
+                        </div>
+                    </div>
+                    <div class="save-slot" id="save-slot-2">
+                        <h4>Save Slot 2</h4>
+                        <div class="save-info">No save data</div>
+                        <div class="save-buttons">
+                            <button class="save-button" data-slot="2">Save Game</button>
+                            <button class="load-button" data-slot="2" disabled>Load Game</button>
+                            <button class="delete-button" data-slot="2" disabled>Delete Save</button>
+                        </div>
+                    </div>
+                    <div class="save-slot" id="save-slot-3">
+                        <h4>Save Slot 3</h4>
+                        <div class="save-info">No save data</div>
+                        <div class="save-buttons">
+                            <button class="save-button" data-slot="3">Save Game</button>
+                            <button class="load-button" data-slot="3" disabled>Load Game</button>
+                            <button class="delete-button" data-slot="3" disabled>Delete Save</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="reset-game-section" style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                    <h4>Reset Game</h4>
+                    <p>Warning: This will delete your current game progress and start a new game.</p>
+                    <button id="reset-game-button" style="background-color: #a02c2c;">Reset Game</button>
                 </div>
             </div>
         </div>
@@ -1617,6 +1745,123 @@
             // Update population history
             updatePopulationHistory(game.gameState.resources.people);
         }
+        
+        // Save/Load functionality
+        const saveButtons = document.querySelectorAll('.save-button');
+        const loadButtons = document.querySelectorAll('.load-button');
+        const deleteButtons = document.querySelectorAll('.delete-button');
+        const resetGameButton = document.getElementById('reset-game-button');
+        
+        // Initialize save slots
+        function updateSaveSlots() {
+            const saveInfo = game.getSaveSlotInfo();
+            
+            saveInfo.forEach((slotInfo, index) => {
+                const slotNumber = index + 1;
+                const slotElement = document.getElementById(`save-slot-${slotNumber}`);
+                const saveInfoElement = slotElement.querySelector('.save-info');
+                const loadButton = slotElement.querySelector('.load-button');
+                const deleteButton = slotElement.querySelector('.delete-button');
+                
+                if (slotInfo.isEmpty) {
+                    saveInfoElement.className = 'save-info';
+                    saveInfoElement.innerHTML = 'No save data';
+                    loadButton.disabled = true;
+                    deleteButton.disabled = true;
+                } else {
+                    saveInfoElement.className = 'save-info has-save';
+                    
+                    let infoHTML = '';
+                    if (slotInfo.error) {
+                        infoHTML = '<span style="color: #ff5555;">Error reading save data</span>';
+                        loadButton.disabled = true;
+                    } else {
+                        infoHTML = `
+                            <div class="save-slot-meta">Saved: <span>${slotInfo.savedAt}</span></div>
+                            <div class="save-slot-meta">Day: <span>${slotInfo.days}</span></div>
+                            <div class="save-slot-meta">People: <span>${slotInfo.people}</span></div>
+                            <div class="save-slot-meta">Leadership: <span>${slotInfo.leadership}</span></div>
+                        `;
+                        loadButton.disabled = false;
+                    }
+                    
+                    saveInfoElement.innerHTML = infoHTML;
+                    deleteButton.disabled = false;
+                }
+            });
+        }
+        
+        // Save game to slot
+        saveButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const slotNumber = parseInt(button.getAttribute('data-slot'));
+                if (game.saveGameToSlot(slotNumber)) {
+                    showMessage(`Game saved to slot ${slotNumber}!`);
+                    updateSaveSlots();
+                } else {
+                    showMessage('Error saving game. Please try again.');
+                }
+            });
+        });
+        
+        // Load game from slot
+        loadButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const slotNumber = parseInt(button.getAttribute('data-slot'));
+                
+                if (confirm(`Are you sure you want to load the game from slot ${slotNumber}? Any unsaved progress will be lost.`)) {
+                    if (game.loadGameFromSlot(slotNumber)) {
+                        showMessage(`Game loaded from slot ${slotNumber}!`);
+                        updateUI();
+                    } else {
+                        showMessage('Error loading game. The save may be corrupted.');
+                    }
+                }
+            });
+        });
+        
+        // Delete save from slot
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const slotNumber = parseInt(button.getAttribute('data-slot'));
+                
+                if (confirm(`Are you sure you want to delete the save in slot ${slotNumber}? This cannot be undone.`)) {
+                    if (game.deleteSaveInSlot(slotNumber)) {
+                        showMessage(`Save in slot ${slotNumber} deleted.`);
+                        updateSaveSlots();
+                    } else {
+                        showMessage('Error deleting save.');
+                    }
+                }
+            });
+        });
+        
+        // Reset game
+        resetGameButton.addEventListener('click', () => {
+            if (confirm("Are you sure you want to reset your game? All progress will be lost!")) {
+                game.resetGame();
+                showMessage("Game has been reset. Starting a new game...");
+                location.reload();
+            }
+        });
+        
+        // Show message helper function
+        function showMessage(message) {
+            const messageBox = document.createElement('div');
+            messageBox.className = 'message-box';
+            messageBox.textContent = message;
+            document.body.appendChild(messageBox);
+            
+            setTimeout(() => {
+                messageBox.classList.add('fade-out');
+                setTimeout(() => {
+                    document.body.removeChild(messageBox);
+                }, 500);
+            }, 2000);
+        }
+        
+        // Initialize save slots when tab is clicked
+        document.querySelector('.tab-button[data-tab="save"]').addEventListener('click', updateSaveSlots);
         
         // Initialize UI
         updateUI();
