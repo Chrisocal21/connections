@@ -1961,6 +1961,7 @@
         const materialsValue = document.getElementById('materials-value');
         const peopleValue = document.getElementById('people-value');
         const eventLog = document.getElementById('event-log');
+        const recentEvents = document.getElementById('recent-events');
         const survivorList = document.getElementById('survivor-list');
         const discoveryList = document.getElementById('discovery-list');
         const warningIndicator = document.getElementById('warning-indicator');
@@ -2026,25 +2027,11 @@
         const buildCisternBtn = document.getElementById('build-cistern-btn');
         const buildWorkshopBtn = document.getElementById('build-workshop-btn');
         
-        tabButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                // Remove active class from all buttons and contents
-                tabButtons.forEach(btn => btn.classList.remove('active'));
-                tabContents.forEach(content => content.classList.remove('active'));
-                
-                // Add active class to clicked button and corresponding content
-                button.classList.add('active');
-                const tabId = button.getAttribute('data-tab');
-                document.getElementById(`${tabId}-tab`).classList.add('active');
-            });
-        });
-        
-        // Reset game button functionality
-        resetGameBtn.addEventListener('click', () => {
-            if (confirm("Are you sure you want to reset your game progress? This cannot be undone.")) {
-                game.resetGame();
-                alert("Game data has been reset. The game will now reload.");
-                location.reload();
+        // Find Survivors card functionality
+        document.addEventListener('click', function(e) {
+            if (e.target && (e.target.id === 'find-survivors-card' || e.target.closest('#find-survivors-card'))) {
+                // Trigger the explore function when this card is clicked
+                exploreBtn.click();
             }
         });
         
@@ -2061,7 +2048,7 @@
                 
                 if (vizType === 'graph') {
                     document.getElementById('graph-container').style.display = 'block';
-                } else if (vizType === 'bars') {
+                } else if (vizType === 'population') {
                     document.getElementById('pop-history-container').style.display = 'block';
                 }
             });
@@ -2083,112 +2070,25 @@
                 }
             }
             
-            mapGenerator = new ReclaimedMapGenerator('mapCanvas', game.gameState);
-            resourceGraph = new ReclaimedGraphRenderer('resourceGraph');
-            
-            // Make sure to render the map immediately
-            mapGenerator.render();
-            
-            // Add initial data point for graph
-            resourceGraph.addDataPoint(game.gameState.day, game.gameState.resources);
+            try {
+                mapGenerator = new ReclaimedMapGenerator('mapCanvas', game.gameState);
+                resourceGraph = new ReclaimedGraphRenderer('resourceGraph');
+                
+                // Make sure to render the map immediately
+                mapGenerator.render();
+                
+                // Add initial data point for graph
+                resourceGraph.addDataPoint(game.gameState.day, game.gameState.resources);
+            } catch (e) {
+                console.error("Error initializing visualizations:", e);
+            }
             
             // Initialize population history
             updatePopulationHistory(game.gameState.resources.people);
+            
+            // Initialize UI
+            updateUI();
         });
-        
-        // Update UI based on game state
-        function updateUI() {
-            // Update both desktop and mobile indicators
-            dayDisplay.textContent = `Day ${game.gameState.day}`;
-            document.getElementById('mobile-day-display').textContent = `${game.gameState.day}`;
-            
-            leadershipDisplay.innerHTML = `<span class="leadership-icon">👑</span> Leadership: ${game.gameState.leadershipScore}`;
-            document.getElementById('mobile-leadership-display').textContent = game.gameState.leadershipScore;
-            
-            foodValue.textContent = Math.floor(game.gameState.resources.food);
-            waterValue.textContent = Math.floor(game.gameState.resources.water);
-            materialsValue.textContent = Math.floor(game.gameState.resources.materials);
-            peopleValue.textContent = game.gameState.resources.people;
-            
-            // Update story elements
-            updateJournalEntries();
-            updateWeatherDisplay();
-            updateActionsCounter();
-            
-            // Update game version display
-            if (gameVersionDisplay) {
-                gameVersionDisplay.textContent = game.gameState.version || game.gameVersion || "1.1.0";
-            }
-            
-            // Update survivors tab
-            updateSurvivorsList();
-            
-            // Update discoveries tab
-            updateDiscoveriesList();
-            
-            // Update story phase markers
-            updateStoryPhase();
-            
-            // Show warning if resources are critically low
-            if (game.gameState.resources.food <= 1 || game.gameState.resources.water <= 1) {
-                warningIndicator.style.display = 'block';
-                warningIndicator.textContent = `Warning: ${
-                    game.gameState.resources.food <= 1 ? 'Food' : 'Water'
-                } critically low!`;
-            } else {
-                warningIndicator.style.display = 'none';
-            }
-            
-            // Disable buttons if resources are too low or no actions remaining
-            if (game.gameState.resources.food <= 0 || game.gameState.resources.water <= 0) {
-                scavengeBtn.disabled = true;
-                buildBtn.disabled = true;
-                exploreBtn.disabled = true;
-                gameStatus.textContent = "Your colony is in critical condition. You need food and water to continue.";
-            } else if (game.gameState.actionsRemaining <= 0) {
-                scavengeBtn.disabled = true;
-                buildBtn.disabled = true;
-                exploreBtn.disabled = true;
-            } else {
-                scavengeBtn.disabled = false;
-                buildBtn.disabled = game.gameState.resources.materials < 2;
-                exploreBtn.disabled = false;
-            }
-            
-            // After day 5, update UI to indicate more challenging gameplay
-            if (game.gameState.day > 5 && game.gameState.day < 8) {
-                gameStatus.innerHTML += "<br><small>The world is becoming more challenging as resources grow scarce and others fight to survive...</small>";
-            }
-            
-            // Update building counts
-            shelterCount.textContent = game.gameState.buildings.shelters;
-            farmCount.textContent = game.gameState.buildings.farms;
-            cisternCount.textContent = game.gameState.buildings.cisterns;
-            workshopCount.textContent = game.gameState.buildings.workshops;
-            
-            // Update settlement stats
-            daysSurvived.textContent = game.gameState.day;
-            peopleRescued.textContent = game.gameState.survivors.length;
-            exploredArea.textContent = Math.min(100, Math.floor(5 + (game.gameState.day * 3))) + '%';
-            discoveriesCount.textContent = game.gameState.discoveries.length;
-            
-            // Update building buttons
-            buildFarmBtn.disabled = game.gameState.resources.materials < 3 || game.gameState.actionsRemaining <= 0;
-            buildCisternBtn.disabled = game.gameState.resources.materials < 4 || game.gameState.actionsRemaining <= 0;
-            buildWorkshopBtn.disabled = game.gameState.resources.materials < 5 || game.gameState.actionsRemaining <= 0;
-            
-            // Update visualizations
-            if (mapGenerator && game.gameState.day > 1) {
-                mapGenerator.updateMap(game.gameState);
-            }
-            
-            if (resourceGraph && game.gameState.day > 1) {
-                resourceGraph.addDataPoint(game.gameState.day, game.gameState.resources);
-            }
-            
-            // Update population history
-            updatePopulationHistory(game.gameState.resources.people);
-        }
         
         function updatePopulationHistory(currentPopulation) {
             // Store the population data
@@ -2311,28 +2211,118 @@
             discoveryList.innerHTML = '';
             
             // Add each discovery
-            game.gameState.discoveries.forEach(discovery => {
-                const discoveryItem = document.createElement('div');
-                discoveryItem.className = 'discovery-item';
-                
-                const titleElement = document.createElement('div');
-                titleElement.className = 'discovery-title';
-                titleElement.textContent = discovery.title;
-                
-                const dayElement = document.createElement('div');
-                dayElement.className = 'discovery-day';
-                dayElement.textContent = `Found: Day ${discovery.day}`;
-                
-                const contentElement = document.createElement('div');
-                contentElement.className = 'discovery-content';
-                contentElement.textContent = discovery.content;
-                
-                discoveryItem.appendChild(titleElement);
-                discoveryItem.appendChild(dayElement);
-                discoveryItem.appendChild(contentElement);
-                
-                discoveryList.appendChild(discoveryItem);
-            });
+            if (game.gameState.discoveries && game.gameState.discoveries.length > 0) {
+                game.gameState.discoveries.forEach(discovery => {
+                    const discoveryItem = document.createElement('div');
+                    discoveryItem.className = 'discovery-item';
+                    
+                    const titleElement = document.createElement('div');
+                    titleElement.className = 'discovery-title';
+                    titleElement.textContent = discovery.title;
+                    
+                    const dayElement = document.createElement('div');
+                    dayElement.className = 'discovery-day';
+                    dayElement.textContent = `Found: Day ${discovery.day || game.gameState.day}`;
+                    
+                    const contentElement = document.createElement('div');
+                    contentElement.className = 'discovery-content';
+                    contentElement.textContent = discovery.content;
+                    
+                    discoveryItem.appendChild(titleElement);
+                    discoveryItem.appendChild(dayElement);
+                    discoveryItem.appendChild(contentElement);
+                    
+                    discoveryList.appendChild(discoveryItem);
+                });
+            } else {
+                // Display a message if no discoveries yet
+                const emptyMessage = document.createElement('div');
+                emptyMessage.className = 'empty-journal-message';
+                emptyMessage.textContent = 'No discoveries yet. Explore and investigate to learn more about the Quiet Reset.';
+                discoveryList.appendChild(emptyMessage);
+            }
+        }
+        
+        function updateJournalEntries() {
+            const journalEntriesList = document.getElementById('journal-entries-list');
+            if (!journalEntriesList) return;
+            
+            // Clear current list
+            journalEntriesList.innerHTML = '';
+            
+            // Add each journal entry
+            if (game.gameState.journal && game.gameState.journal.length > 0) {
+                game.gameState.journal.forEach(entry => {
+                    const journalEntry = document.createElement('div');
+                    journalEntry.className = 'journal-entry';
+                    
+                    const titleElement = document.createElement('div');
+                    titleElement.className = 'journal-title';
+                    titleElement.textContent = entry.title;
+                    
+                    const authorElement = document.createElement('div');
+                    authorElement.className = 'journal-author';
+                    authorElement.textContent = `Written by ${entry.author}`;
+                    
+                    const textElement = document.createElement('div');
+                    textElement.className = 'journal-text';
+                    textElement.textContent = entry.text;
+                    
+                    const dayElement = document.createElement('div');
+                    dayElement.className = 'journal-day';
+                    dayElement.textContent = `Found on Day ${entry.day}`;
+                    
+                    journalEntry.appendChild(titleElement);
+                    journalEntry.appendChild(authorElement);
+                    journalEntry.appendChild(textElement);
+                    journalEntry.appendChild(dayElement);
+                    
+                    journalEntriesList.appendChild(journalEntry);
+                });
+            } else {
+                // Display a message if no journal entries yet
+                const emptyMessage = document.createElement('div');
+                emptyMessage.className = 'empty-journal-message';
+                emptyMessage.textContent = 'No journal entries found yet. Continue your journey to discover more.';
+                journalEntriesList.appendChild(emptyMessage);
+            }
+        }
+        
+        function updateStoryPhase() {
+            // Update the phase markers based on the current story phase
+            const currentPhase = game.gameState.storyPhase;
+            
+            // Reset all markers
+            phaseAwakening.classList.remove('active');
+            phaseSurvival.classList.remove('active');
+            phaseExpansion.classList.remove('active');
+            phaseRevelation.classList.remove('active');
+            
+            // Set active markers based on current phase
+            switch(currentPhase) {
+                case 'awakening':
+                    phaseAwakening.classList.add('active');
+                    phaseLabel.textContent = 'Phase: Awakening';
+                    break;
+                case 'survival':
+                    phaseAwakening.classList.add('active');
+                    phaseSurvival.classList.add('active');
+                    phaseLabel.textContent = 'Phase: Survival';
+                    break;
+                case 'expansion':
+                    phaseAwakening.classList.add('active');
+                    phaseSurvival.classList.add('active');
+                    phaseExpansion.classList.add('active');
+                    phaseLabel.textContent = 'Phase: Expansion';
+                    break;
+                case 'revelation':
+                    phaseAwakening.classList.add('active');
+                    phaseSurvival.classList.add('active');
+                    phaseExpansion.classList.add('active');
+                    phaseRevelation.classList.add('active');
+                    phaseLabel.textContent = 'Phase: Revelation';
+                    break;
+            }
         }
         
         function updateWeatherDisplay() {
@@ -2379,46 +2369,38 @@
             maxActions.textContent = game.gameState.maxActionsPerDay;
             
             // Disable action buttons if no actions remaining
-            const actionButtons = [scavengeBtn, buildBtn, exploreBtn];
+            const actionButtons = [scavengeBtn, buildBtn, exploreBtn, buildFarmBtn, buildCisternBtn, buildWorkshopBtn];
             
             if (game.gameState.actionsRemaining <= 0) {
                 actionButtons.forEach(btn => {
-                    btn.disabled = true;
+                    if (btn) btn.disabled = true;
                 });
             }
         }
         
-        // Modify the existing updateUI function to include new UI elements
         function updateUI() {
-            // Update both desktop and mobile indicators
-            dayDisplay.textContent = `Day ${game.gameState.day}`;
-            document.getElementById('mobile-day-display').textContent = `${game.gameState.day}`;
+            // Update day display
+            if (dayDisplay) {
+                dayDisplay.textContent = game.gameState.day;
+            }
             
-            leadershipDisplay.innerHTML = `<span class="leadership-icon">👑</span> Leadership: ${game.gameState.leadershipScore}`;
-            document.getElementById('mobile-leadership-display').textContent = game.gameState.leadershipScore;
+            // Update leadership display
+            if (leadershipDisplay) {
+                leadershipDisplay.textContent = game.gameState.leadershipScore;
+            }
             
-            foodValue.textContent = Math.floor(game.gameState.resources.food);
-            waterValue.textContent = Math.floor(game.gameState.resources.water);
-            materialsValue.textContent = Math.floor(game.gameState.resources.materials);
-            peopleValue.textContent = game.gameState.resources.people;
+            // Update resource displays
+            if (foodValue) foodValue.textContent = Math.floor(game.gameState.resources.food);
+            if (waterValue) waterValue.textContent = Math.floor(game.gameState.resources.water);
+            if (materialsValue) materialsValue.textContent = Math.floor(game.gameState.resources.materials);
+            if (peopleValue) peopleValue.textContent = game.gameState.resources.people;
             
-            // Update story elements
+            // Update UI elements that have specific update functions
             updateJournalEntries();
             updateWeatherDisplay();
             updateActionsCounter();
-            
-            // Update game version display
-            if (gameVersionDisplay) {
-                gameVersionDisplay.textContent = game.gameState.version || game.gameVersion || "1.1.0";
-            }
-            
-            // Update survivors tab
             updateSurvivorsList();
-            
-            // Update discoveries tab
             updateDiscoveriesList();
-            
-            // Update story phase markers
             updateStoryPhase();
             
             // Show warning if resources are critically low
@@ -2453,29 +2435,33 @@
             }
             
             // Update building counts
-            shelterCount.textContent = game.gameState.buildings.shelters;
-            farmCount.textContent = game.gameState.buildings.farms;
-            cisternCount.textContent = game.gameState.buildings.cisterns;
-            workshopCount.textContent = game.gameState.buildings.workshops;
+            if (shelterCount) shelterCount.textContent = game.gameState.buildings.shelters;
+            if (farmCount) farmCount.textContent = game.gameState.buildings.farms;
+            if (cisternCount) cisternCount.textContent = game.gameState.buildings.cisterns;
+            if (workshopCount) workshopCount.textContent = game.gameState.buildings.workshops;
             
             // Update settlement stats
-            daysSurvived.textContent = game.gameState.day;
-            peopleRescued.textContent = game.gameState.survivors.length;
-            exploredArea.textContent = Math.min(100, Math.floor(5 + (game.gameState.day * 3))) + '%';
-            discoveriesCount.textContent = game.gameState.discoveries.length;
+            if (daysSurvived) daysSurvived.textContent = game.gameState.day;
+            if (peopleRescued) peopleRescued.textContent = game.gameState.survivors.length;
+            if (exploredArea) exploredArea.textContent = Math.min(100, Math.floor(5 + (game.gameState.day * 3))) + '%';
+            if (discoveriesCount) discoveriesCount.textContent = game.gameState.discoveries.length;
             
             // Update building buttons
-            buildFarmBtn.disabled = game.gameState.resources.materials < 3 || game.gameState.actionsRemaining <= 0;
-            buildCisternBtn.disabled = game.gameState.resources.materials < 4 || game.gameState.actionsRemaining <= 0;
-            buildWorkshopBtn.disabled = game.gameState.resources.materials < 5 || game.gameState.actionsRemaining <= 0;
+            if (buildFarmBtn) buildFarmBtn.disabled = game.gameState.resources.materials < 3 || game.gameState.actionsRemaining <= 0;
+            if (buildCisternBtn) buildCisternBtn.disabled = game.gameState.resources.materials < 4 || game.gameState.actionsRemaining <= 0;
+            if (buildWorkshopBtn) buildWorkshopBtn.disabled = game.gameState.resources.materials < 5 || game.gameState.actionsRemaining <= 0;
             
             // Update visualizations
-            if (mapGenerator && game.gameState.day > 1) {
-                mapGenerator.updateMap(game.gameState);
-            }
-            
-            if (resourceGraph && game.gameState.day > 1) {
-                resourceGraph.addDataPoint(game.gameState.day, game.gameState.resources);
+            try {
+                if (mapGenerator && game.gameState.day > 1) {
+                    mapGenerator.updateMap(game.gameState);
+                }
+                
+                if (resourceGraph && game.gameState.day > 1) {
+                    resourceGraph.addDataPoint(game.gameState.day, game.gameState.resources);
+                }
+            } catch (e) {
+                console.error("Error updating visualizations:", e);
             }
             
             // Update population history
@@ -2487,99 +2473,6 @@
         const loadButtons = document.querySelectorAll('.load-button');
         const deleteButtons = document.querySelectorAll('.delete-button');
         const resetGameButton = document.getElementById('reset-game-button');
-        
-        // Initialize save slots
-        function updateSaveSlots() {
-            const saveInfo = game.getSaveSlotInfo();
-            
-            saveInfo.forEach((slotInfo, index) => {
-                const slotNumber = index + 1;
-                const slotElement = document.getElementById(`save-slot-${slotNumber}`);
-                const saveInfoElement = slotElement.querySelector('.save-info');
-                const loadButton = slotElement.querySelector('.load-button');
-                const deleteButton = slotElement.querySelector('.delete-button');
-                
-                if (slotInfo.isEmpty) {
-                    saveInfoElement.className = 'save-info';
-                    saveInfoElement.innerHTML = 'No save data';
-                    loadButton.disabled = true;
-                    deleteButton.disabled = true;
-                } else {
-                    saveInfoElement.className = 'save-info has-save';
-                    
-                    let infoHTML = '';
-                    if (slotInfo.error) {
-                        infoHTML = '<span style="color: #ff5555;">Error reading save data</span>';
-                        loadButton.disabled = true;
-                    } else {
-                        infoHTML = `
-                            <div class="save-slot-meta">Saved: <span>${slotInfo.savedAt}</span></div>
-                            <div class="save-slot-meta">Day: <span>${slotInfo.days}</span></div>
-                            <div class="save-slot-meta">People: <span>${slotInfo.people}</span></div>
-                            <div class="save-slot-meta">Leadership: <span>${slotInfo.leadership}</span></div>
-                        `;
-                        loadButton.disabled = false;
-                    }
-                    
-                    saveInfoElement.innerHTML = infoHTML;
-                    deleteButton.disabled = false;
-                }
-            });
-        }
-        
-        // Save game to slot
-        saveButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const slotNumber = parseInt(button.getAttribute('data-slot'));
-                if (game.saveGameToSlot(slotNumber)) {
-                    showMessage(`Game saved to slot ${slotNumber}!`);
-                    updateSaveSlots();
-                } else {
-                    showMessage('Error saving game. Please try again.');
-                }
-            });
-        });
-        
-        // Load game from slot
-        loadButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const slotNumber = parseInt(button.getAttribute('data-slot'));
-                
-                if (confirm(`Are you sure you want to load the game from slot ${slotNumber}? Any unsaved progress will be lost.`)) {
-                    if (game.loadGameFromSlot(slotNumber)) {
-                        showMessage(`Game loaded from slot ${slotNumber}!`);
-                        updateUI();
-                    } else {
-                        showMessage('Error loading game. The save may be corrupted.');
-                    }
-                }
-            });
-        });
-        
-        // Delete save from slot
-        deleteButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const slotNumber = parseInt(button.getAttribute('data-slot'));
-                
-                if (confirm(`Are you sure you want to delete the save in slot ${slotNumber}? This cannot be undone.`)) {
-                    if (game.deleteSaveInSlot(slotNumber)) {
-                        showMessage(`Save in slot ${slotNumber} deleted.`);
-                        updateSaveSlots();
-                    } else {
-                        showMessage('Error deleting save.');
-                    }
-                }
-            });
-        });
-        
-        // Reset game
-        resetGameButton.addEventListener('click', () => {
-            if (confirm("Are you sure you want to reset your game? All progress will be lost!")) {
-                game.resetGame();
-                showMessage("Game has been reset. Starting a new game...");
-                location.reload();
-            }
-        });
         
         // Show message helper function
         function showMessage(message) {
@@ -2595,12 +2488,6 @@
                 }, 500);
             }, 2000);
         }
-        
-        // Initialize save slots when tab is clicked
-        document.querySelector('.tab-button[data-tab="save"]').addEventListener('click', updateSaveSlots);
-        
-        // Initialize UI
-        updateUI();
         
         // Add event listeners for game action buttons
         scavengeBtn.addEventListener('click', () => {
@@ -2619,7 +2506,9 @@
             const eventEntry = document.createElement('div');
             eventEntry.className = 'event-entry';
             eventEntry.textContent = `Day ${game.gameState.day}: ${message}`;
-            eventLog.prepend(eventEntry);
+            
+            if (eventLog) eventLog.prepend(eventEntry);
+            if (recentEvents) recentEvents.prepend(eventEntry.cloneNode(true));
             
             updateUI();
         });
@@ -2639,7 +2528,9 @@
             const eventEntry = document.createElement('div');
             eventEntry.className = 'event-entry';
             eventEntry.textContent = `Day ${game.gameState.day}: Built a new shelter.`;
-            eventLog.prepend(eventEntry);
+            
+            if (eventLog) eventLog.prepend(eventEntry);
+            if (recentEvents) recentEvents.prepend(eventEntry.cloneNode(true));
             
             updateUI();
         });
@@ -2659,7 +2550,9 @@
             const eventEntry = document.createElement('div');
             eventEntry.className = 'event-entry';
             eventEntry.textContent = `Day ${game.gameState.day}: ${result.message}`;
-            eventLog.prepend(eventEntry);
+            
+            if (eventLog) eventLog.prepend(eventEntry);
+            if (recentEvents) recentEvents.prepend(eventEntry.cloneNode(true));
             
             updateUI();
         });
@@ -2673,7 +2566,9 @@
             const eventEntry = document.createElement('div');
             eventEntry.className = 'event-entry';
             eventEntry.textContent = `Day ${game.gameState.day}: ${result.message}`;
-            eventLog.prepend(eventEntry);
+            
+            if (eventLog) eventLog.prepend(eventEntry);
+            if (recentEvents) recentEvents.prepend(eventEntry.cloneNode(true));
             
             // Check if we got a journal entry
             if (result.journal) {
@@ -2684,67 +2579,97 @@
         });
         
         // Add event listeners for building-specific buttons
-        buildFarmBtn.addEventListener('click', () => {
-            const result = game.buildStructure('farm');
-            
-            if (result.error) {
+        if (buildFarmBtn) {
+            buildFarmBtn.addEventListener('click', () => {
+                const result = game.buildStructure('farm');
+                
+                if (result.error) {
+                    showMessage(result.message);
+                    return;
+                }
+                
+                gameStatus.textContent = result.message;
                 showMessage(result.message);
-                return;
-            }
-            
-            gameStatus.textContent = result.message;
-            showMessage(result.message);
-            
-            // Add to event log
-            const eventEntry = document.createElement('div');
-            eventEntry.className = 'event-entry';
-            eventEntry.textContent = `Day ${game.gameState.day}: Built a new farm.`;
-            eventLog.prepend(eventEntry);
-            
-            updateUI();
-        });
+                
+                // Add to event log
+                const eventEntry = document.createElement('div');
+                eventEntry.className = 'event-entry';
+                eventEntry.textContent = `Day ${game.gameState.day}: Built a new farm.`;
+                
+                if (eventLog) eventLog.prepend(eventEntry);
+                if (recentEvents) recentEvents.prepend(eventEntry.cloneNode(true));
+                
+                updateUI();
+            });
+        }
         
-        buildCisternBtn.addEventListener('click', () => {
-            const result = game.buildStructure('cistern');
-            
-            if (result.error) {
+        if (buildCisternBtn) {
+            buildCisternBtn.addEventListener('click', () => {
+                const result = game.buildStructure('cistern');
+                
+                if (result.error) {
+                    showMessage(result.message);
+                    return;
+                }
+                
+                gameStatus.textContent = result.message;
                 showMessage(result.message);
-                return;
-            }
-            
-            gameStatus.textContent = result.message;
-            showMessage(result.message);
-            
-            // Add to event log
-            const eventEntry = document.createElement('div');
-            eventEntry.className = 'event-entry';
-            eventEntry.textContent = `Day ${game.gameState.day}: Built a new cistern.`;
-            eventLog.prepend(eventEntry);
-            
-            updateUI();
-        });
+                
+                // Add to event log
+                const eventEntry = document.createElement('div');
+                eventEntry.className = 'event-entry';
+                eventEntry.textContent = `Day ${game.gameState.day}: Built a new cistern.`;
+                
+                if (eventLog) eventLog.prepend(eventEntry);
+                if (recentEvents) recentEvents.prepend(eventEntry.cloneNode(true));
+                
+                updateUI();
+            });
+        }
         
-        buildWorkshopBtn.addEventListener('click', () => {
-            const result = game.buildStructure('workshop');
-            
-            if (result.error) {
+        if (buildWorkshopBtn) {
+            buildWorkshopBtn.addEventListener('click', () => {
+                const result = game.buildStructure('workshop');
+                
+                if (result.error) {
+                    showMessage(result.message);
+                    return;
+                }
+                
+                gameStatus.textContent = result.message;
                 showMessage(result.message);
-                return;
-            }
-            
-            gameStatus.textContent = result.message;
-            showMessage(result.message);
-            
-            // Add to event log
-            const eventEntry = document.createElement('div');
-            eventEntry.className = 'event-entry';
-            eventEntry.textContent = `Day ${game.gameState.day}: Built a new workshop.`;
-            eventLog.prepend(eventEntry);
-            
-            updateUI();
-        });
+                
+                // Add to event log
+                const eventEntry = document.createElement('div');
+                eventEntry.className = 'event-entry';
+                eventEntry.textContent = `Day ${game.gameState.day}: Built a new workshop.`;
+                
+                if (eventLog) eventLog.prepend(eventEntry);
+                if (recentEvents) recentEvents.prepend(eventEntry.cloneNode(true));
+                
+                updateUI();
+            });
+        }
         
-        // Initialize save slots when tab is clicked
+        // Add mobile indicators to the container
+        const indicatorContainer = document.createElement('div');
+        indicatorContainer.className = 'indicator-container';
+        indicatorContainer.innerHTML = `
+            <div class="mobile-indicator mobile-day">
+                <span>Day</span>
+                <span id="mobile-day-display">${game.gameState.day}</span>
+            </div>
+            <div class="mobile-indicator mobile-leadership">
+                <span>Leadership</span>
+                <span id="mobile-leadership-display">${game.gameState.leadershipScore}</span>
+            </div>
+        `;
+        
+        // Insert after game-header
+        const gameHeader = document.querySelector('.game-header');
+        if (gameHeader && !document.querySelector('.indicator-container')) {
+            gameHeader.parentNode.insertBefore(indicatorContainer, gameHeader.nextSibling);
+        }
     </script>
     
     <footer class="repo-footer">
