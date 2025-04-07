@@ -11,21 +11,427 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             text-align: center;
             margin: 0;
-            padding: 50px;
+            padding: 50px 20px;
             background-image: radial-gradient(circle at center, #1a1a1a 0%, #0a0a0a 100%);
         }
-        h1 {
-            margin-top: 30px;
-            font-size: 2.5em;
-            text-shadow: 0 0 10px rgba(100, 217, 255, 0.3);
-            letter-spacing: 2px;
+        
+        /* Layout utilities */
+        .grid-layout {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
         }
-        p {
-            font-size: 1.2em;
-            max-width: 600px;
-            margin: 20px auto;
-            line-height: 1.6;
+        
+        .flex-row {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: space-between;
+            align-items: center;
         }
+        
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 15px 0;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .section-title {
+            color: #64D9FF;
+            margin: 15px 0 5px 0;
+            font-size: 1.1em;
+            border-bottom: 1px solid rgba(100, 217, 255, 0.2);
+            padding-bottom: 5px;
+            text-align: left;
+        }
+        
+        /* Game container */
+        #game-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(30, 30, 30, 0.7);
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+        
+        /* Status and headers */
+        #game-status-container {
+            margin-bottom: 20px;
+        }
+        
+        #game-status {
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: rgba(0, 0, 0, 0.3);
+            font-style: italic;
+            line-height: 1.4;
+        }
+        
+        /* Improved resource layout */
+        .resources-container {
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .resources {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            margin: 10px 0;
+        }
+        
+        .resource {
+            padding: 8px;
+            border-radius: 5px;
+            background-color: rgba(40, 40, 40, 0.8);
+            transition: all 0.2s ease;
+        }
+        
+        .resource:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .resource-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-top: 5px;
+            color: #64D9FF;
+        }
+        
+        /* Styled action buttons */
+        .actions-container {
+            margin-bottom: 15px;
+        }
+        
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 10px 0;
+        }
+        
+        button {
+            background: #1E3A5F;
+            color: white;
+            border: none;
+            padding: 12px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        button:hover {
+            background: #2A5795;
+            transform: translateY(-2px);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:disabled {
+            background: #2A3A47;
+            cursor: not-allowed;
+            opacity: 0.7;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        /* Scavenge button: orangish */
+        #scavenge-btn {
+            background: #5F3E1E;
+        }
+        #scavenge-btn:hover:not(:disabled) {
+            background: #7C5328;
+        }
+        
+        /* Build button: greenish */
+        #build-btn, #build-farm-btn, #build-cistern-btn, #build-workshop-btn {
+            background: #1E5F3E;
+        }
+        #build-btn:hover:not(:disabled), 
+        #build-farm-btn:hover:not(:disabled), 
+        #build-cistern-btn:hover:not(:disabled), 
+        #build-workshop-btn:hover:not(:disabled) {
+            background: #287C53;
+        }
+        
+        /* Explore button: bluish */
+        #explore-btn {
+            background: #1E3A5F;
+        }
+        #explore-btn:hover:not(:disabled) {
+            background: #2A5795;
+        }
+        
+        /* Next day button: purplish */
+        #next-day-btn {
+            background: #3E1E5F;
+            font-weight: bold;
+        }
+        #next-day-btn:hover {
+            background: #5328A0;
+        }
+        
+        /* Recent events with better formatting */
+        .recent-events-container {
+            margin-bottom: 15px;
+        }
+        
+        .recent-events {
+            text-align: left;
+            max-height: 120px;
+            overflow-y: auto;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            font-size: 0.9em;
+            border-left: 3px solid #64D9FF;
+        }
+        
+        .event-entry {
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .event-entry:last-child {
+            border-bottom: none;
+        }
+        
+        /* Better tab interface */
+        .tab-container {
+            margin: 20px 0 0 0;
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: rgba(20, 20, 20, 0.5);
+        }
+        
+        .tab-buttons {
+            display: flex;
+            overflow-x: auto;
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 5px 5px 0 5px;
+            gap: 2px;
+        }
+        
+        .tab-button {
+            background: rgba(40, 40, 40, 0.8);
+            color: #ccc;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px 5px 0 0;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 0.9em;
+            white-space: nowrap;
+            flex: 0 0 auto;
+        }
+        
+        .tab-button.active {
+            background: #1E3A5F;
+            color: white;
+        }
+        
+        .tab-button:hover:not(.active) {
+            background: rgba(60, 60, 60, 0.8);
+            transform: none;
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 15px;
+            background-color: rgba(30, 30, 30, 0.7);
+            border-radius: 0 0 5px 5px;
+            text-align: left;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .tab-description {
+            color: #aaa;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+        
+        /* Weather and action counter improvements */
+        .weather-container {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            background-color: rgba(30, 30, 30, 0.8);
+            border-radius: 5px;
+            margin: 0;
+            flex: 1;
+            max-width: 400px;
+        }
+        
+        .weather-icon {
+            font-size: 1.8em;
+            margin-right: 15px;
+            min-width: 30px;
+            text-align: center;
+        }
+        
+        .weather-info {
+            text-align: left;
+            flex: 1;
+        }
+        
+        .weather-type {
+            font-weight: bold;
+            color: #64D9FF;
+            margin-bottom: 3px;
+        }
+        
+        .weather-description {
+            font-size: 0.85em;
+            color: #ccc;
+            line-height: 1.3;
+        }
+        
+        .actions-counter {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            background-color: rgba(30, 30, 30, 0.8);
+            border-radius: 5px;
+            margin: 0;
+            flex: 1;
+            max-width: 250px;
+            justify-content: center;
+        }
+        
+        .actions-value {
+            font-weight: bold;
+            color: #64D9FF;
+            margin: 0 5px;
+        }
+        
+        /* Mobile responsive improvements */
+        @media (max-width: 768px) {
+            body {
+                padding: 15px 10px;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+                margin-top: 15px;
+            }
+            
+            p {
+                font-size: 1em;
+                margin: 10px auto;
+            }
+            
+            .day-counter, .leadership-badge {
+                display: none; /* Hide desktop versions on mobile */
+            }
+            
+            #game-container {
+                padding: 15px 10px;
+                margin-top: 10px;
+            }
+            
+            .status-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .weather-container, .actions-counter {
+                max-width: none;
+            }
+            
+            .resources {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+            
+            .tab-buttons {
+                justify-content: flex-start;
+                padding: 5px 0 0 0;
+            }
+            
+            .tab-button {
+                padding: 8px 12px;
+                font-size: 0.8em;
+            }
+            
+            .tab-content {
+                padding: 10px;
+            }
+            
+            .section-title {
+                font-size: 1em;
+            }
+            
+            /* Hide text labels on mobile, show icons only */
+            .mobile-icon-tabs .tab-button {
+                font-size: 0;
+                padding: 8px;
+            }
+            
+            .mobile-icon-tabs .tab-button::before {
+                font-size: 1.2rem;
+            }
+            
+            /* Tab icons for mobile */
+            .tab-events::before { content: "📜"; }
+            .tab-journal::before { content: "📓"; }
+            .tab-survivors::before { content: "👥"; }
+            .tab-story::before { content: "📖"; }
+            .tab-map::before { content: "🗺️"; }
+            .tab-analytics::before { content: "📊"; }
+            .tab-settlement::before { content: "🏠"; }
+            .tab-save::before { content: "💾"; }
+        }
+        
+        /* Mobile indicators styling with icons */
+        .indicator-container {
+            display: flex;
+            justify-content: center;
+            margin: 5px 0 15px 0;
+            gap: 15px;
+        }
+        
+        .mobile-indicator {
+            background: rgba(30, 30, 30, 0.7);
+            border-radius: 5px;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+            gap: 8px;
+        }
+        
+        .mobile-day {
+            background: rgba(30, 58, 95, 0.8);
+        }
+        
+        .mobile-leadership {
+            background: rgba(95, 30, 75, 0.8);
+        }
+        
+        @media (min-width: 769px) {
+            .indicator-container {
+                display: none; /* Hide mobile indicators on desktop */
+            }
+        }
+        
         .back-button {
             position: absolute;
             top: 20px;
@@ -42,14 +448,6 @@
         }
         .back-button:hover {
             background: rgba(255, 255, 255, 0.3);
-        }
-        #game-container {
-            max-width: 800px;
-            margin: 30px auto;
-            padding: 20px;
-            background-color: rgba(30, 30, 30, 0.7);
-            border-radius: 8px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
         }
         #game-status {
             margin: 20px 0;
@@ -686,6 +1084,329 @@
             opacity: 0.7;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
+        /* Survivor card styling improvements */
+        .survivor-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .survivor-card {
+            background-color: rgba(40, 40, 40, 0.8);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: left;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .survivor-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .survivor-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #64D9FF;
+            font-size: 1.1em;
+            border-bottom: 1px solid rgba(100, 217, 255, 0.2);
+            padding-bottom: 5px;
+        }
+        
+        .survivor-detail {
+            margin-bottom: 10px;
+            font-size: 0.9em;
+            flex-grow: 1;
+        }
+        
+        .survivor-joined {
+            font-size: 0.8em;
+            color: #aaa;
+            margin-bottom: 8px;
+        }
+        
+        .survivor-skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        
+        .survivor-skill {
+            background-color: rgba(100, 217, 255, 0.2);
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.8em;
+        }
+        
+        /* "Find More Survivors" card styling */
+        .add-survivor-card {
+            background-color: rgba(30, 58, 95, 0.3);
+            border: 2px dashed rgba(100, 217, 255, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        
+        .add-survivor-card:hover {
+            background-color: rgba(30, 58, 95, 0.5);
+            border-color: rgba(100, 217, 255, 0.5);
+        }
+        
+        .add-survivor-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+            color: #64D9FF;
+        }
+        
+        .add-survivor-text {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .add-survivor-description {
+            font-size: 0.8em;
+            color: #aaa;
+            text-align: center;
+        }
+        
+        /* Map styling */
+        .map-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 15px 0;
+            justify-content: center;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-right: 10px;
+            font-size: 0.9em;
+        }
+        
+        .legend-icon {
+            margin-right: 5px;
+        }
+        
+        .exploration-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .direction-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: 1fr 1fr 1fr;
+            gap: 5px;
+            justify-items: center;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+        
+        #explore-north-btn {
+            grid-column: 2;
+            grid-row: 1;
+        }
+        
+        #explore-west-btn {
+            grid-column: 1;
+            grid-row: 2;
+        }
+        
+        #explore-east-btn {
+            grid-column: 3;
+            grid-row: 2;
+        }
+        
+        #explore-south-btn {
+            grid-column: 2;
+            grid-row: 3;
+        }
+        
+        .exploration-progress {
+            text-align: center;
+            margin-top: 10px;
+            color: #64D9FF;
+            font-weight: bold;
+        }
+        /* Save slot styling */
+        .save-slots-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .save-slot {
+            background-color: rgba(40, 40, 40, 0.8);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: left;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .save-slot:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .save-info {
+            min-height: 80px;
+            margin-bottom: 15px;
+            font-style: italic;
+            color: #aaa;
+        }
+        
+        .save-info.has-save {
+            color: #eee;
+            font-style: normal;
+        }
+        
+        .save-date {
+            font-size: 0.8em;
+            color: #888;
+            margin-bottom: 8px;
+        }
+        
+        .save-meta {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+            font-size: 0.9em;
+        }
+        
+        .save-label {
+            color: #aaa;
+        }
+        
+        .save-value {
+            color: #64D9FF;
+            font-weight: bold;
+            text-align: right;
+        }
+        
+        .save-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .save-button {
+            background-color: #1E3A5F;
+        }
+        
+        .load-button {
+            background-color: #1E5F3E;
+        }
+        
+        .load-button:hover:not(:disabled) {
+            background-color: #287C53;
+        }
+        
+        .delete-button {
+            grid-column: span 2;
+            background-color: #5F1E1E;
+        }
+        
+        .delete-button:hover:not(:disabled) {
+            background-color: #7C2828;
+        }
+        
+        .warning-text {
+            color: #ff6b6b;
+        }
+        
+        .reset-game-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+        
+        /* Mobile-specific enhancements */
+        @media (max-width: 768px) {
+            .mobile-icon-tabs {
+                display: flex;
+                justify-content: space-around;
+                background-color: rgba(30, 30, 30, 0.9);
+                padding: 10px 5px;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                z-index: 100;
+                box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+            }
+            
+            .mobile-icon-tabs .tab-button {
+                flex: 1;
+                border-radius: 0;
+                margin: 0;
+                padding: 10px 0;
+                font-size: 0;
+                background: transparent;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .mobile-icon-tabs .tab-button::before {
+                font-size: 1.5rem;
+                margin-bottom: 3px;
+            }
+            
+            .mobile-icon-tabs .tab-button.active {
+                background: rgba(30, 58, 95, 0.5);
+                color: #64D9FF;
+            }
+            
+            /* Add padding to body to account for fixed bottom nav */
+            body {
+                padding-bottom: 70px;
+            }
+            
+            /* Make the game container take full width on mobile */
+            #game-container {
+                border-radius: 0;
+                width: 100%;
+                max-width: none;
+                margin: 0;
+                padding: 10px;
+            }
+            
+            /* Stack the resource cards in two columns on mobile */
+            .resources {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+            
+            /* Make buttons larger and more touch-friendly */
+            button {
+                padding: 12px 0;
+                width: 100%;
+                min-height: 44px;
+            }
+            
+            /* Simplify the event log on mobile */
+            .event-log {
+                max-height: 150px;
+            }
+            
+            /* Adjust tab content padding */
+            .tab-content {
+                padding: 10px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -706,44 +1427,61 @@
     <p>After The Quiet Reset, a silent world awaits…</p>
     
     <div id="game-container">
-        <div id="game-status">You wake from cryosleep. The world is silent. Your pod is one of few that survived.</div>
+        <div id="game-status-container">
+            <div id="game-status">You wake from cryosleep. The world is silent. Your pod is one of few that survived.</div>
+        </div>
         
-        <div class="weather-container" id="weather-container">
-            <div class="weather-icon" id="weather-icon">☀️</div>
-            <div class="weather-info">
-                <div class="weather-type" id="weather-type">Clear</div>
-                <div class="weather-description" id="weather-description">A clear day with good visibility.</div>
+        <div class="status-row">
+            <div class="weather-container" id="weather-container">
+                <div class="weather-icon" id="weather-icon">☀️</div>
+                <div class="weather-info">
+                    <div class="weather-type" id="weather-type">Clear</div>
+                    <div class="weather-description" id="weather-description">A clear day with good visibility.</div>
+                </div>
+            </div>
+            
+            <div class="actions-counter">
+                Actions Remaining: <span class="actions-value" id="actions-remaining">5</span> / <span id="max-actions">5</span>
             </div>
         </div>
         
-        <div class="actions-counter">
-            Actions Remaining: <span class="actions-value" id="actions-remaining">5</span> / <span id="max-actions">5</span>
+        <div class="resources-container">
+            <h3 class="section-title">Resources</h3>
+            <div class="resources">
+                <div class="resource">
+                    <div>Food</div>
+                    <div class="resource-value" id="food-value">10</div>
+                </div>
+                <div class="resource">
+                    <div>Water</div>
+                    <div class="resource-value" id="water-value">15</div>
+                </div>
+                <div class="resource">
+                    <div>Materials</div>
+                    <div class="resource-value" id="materials-value">5</div>
+                </div>
+                <div class="resource">
+                    <div>People</div>
+                    <div class="resource-value" id="people-value">3</div>
+                </div>
+            </div>
         </div>
         
-        <div class="resources">
-            <div class="resource">
-                <div>Food</div>
-                <div class="resource-value" id="food-value">10</div>
-            </div>
-            <div class="resource">
-                <div>Water</div>
-                <div class="resource-value" id="water-value">15</div>
-            </div>
-            <div class="resource">
-                <div>Materials</div>
-                <div class="resource-value" id="materials-value">5</div>
-            </div>
-            <div class="resource">
-                <div>People</div>
-                <div class="resource-value" id="people-value">3</div>
+        <div class="actions-container">
+            <h3 class="section-title">Primary Actions</h3>
+            <div class="action-buttons">
+                <button id="scavenge-btn">Scavenge for Resources</button>
+                <button id="build-btn">Build Shelter</button>
+                <button id="explore-btn">Explore Area</button>
+                <button id="next-day-btn">Next Day</button>
             </div>
         </div>
         
-        <div class="action-buttons">
-            <button id="scavenge-btn">Scavenge for Resources</button>
-            <button id="build-btn">Build Shelter</button>
-            <button id="explore-btn">Explore Area</button>
-            <button id="next-day-btn">Next Day</button>
+        <div class="recent-events-container">
+            <h3 class="section-title">Recent Events</h3>
+            <div class="recent-events" id="recent-events">
+                <div class="event-entry">Day 1: You wake up in a cryopod facility. Most systems have failed. The outside world is unrecognizable.</div>
+            </div>
         </div>
         
         <div class="tab-container">
@@ -768,13 +1506,15 @@
                 <h3>Journal Entries</h3>
                 <p class="tab-description">Personal accounts and stories from survivors of the Quiet Reset.</p>
                 <div class="journal-entries" id="journal-entries-list">
-                    <!-- Journal entries will be added here -->
+                    <!-- Journal entries will be displayed here -->
                     <div class="empty-journal-message">No journal entries found yet. Continue your journey to discover more.</div>
                 </div>
             </div>
             
             <div class="tab-content" id="survivors-tab">
                 <h3>Your Community</h3>
+                <p class="tab-description">The people you've rescued who now form your growing settlement.</p>
+                
                 <div class="survivor-list" id="survivor-list">
                     <div class="survivor-card">
                         <div class="survivor-name">You (Leader)</div>
@@ -783,6 +1523,14 @@
                             <div class="survivor-skill">Leadership</div>
                             <div class="survivor-skill">Adaptability</div>
                         </div>
+                    </div>
+                    
+                    <!-- Other survivors will be populated dynamically -->
+                    
+                    <div class="survivor-card add-survivor-card" id="find-survivors-card">
+                        <div class="add-survivor-icon">+</div>
+                        <div class="add-survivor-text">Find More Survivors</div>
+                        <div class="add-survivor-description">Explore to find others who survived the Quiet Reset</div>
                     </div>
                 </div>
             </div>
@@ -811,6 +1559,27 @@
                 <div class="canvas-container">
                     <canvas id="mapCanvas" width="500" height="400"></canvas>
                 </div>
+                
+                <div class="map-legend">
+                    <div class="legend-item"><span class="legend-icon">🏠</span> Settlement</div>
+                    <div class="legend-item"><span class="legend-icon">🌳</span> Explored</div>
+                    <div class="legend-item"><span class="legend-icon">❓</span> Unexplored</div>
+                    <div class="legend-item"><span class="legend-icon">💧</span> Water Source</div>
+                    <div class="legend-item"><span class="legend-icon">🏚️</span> Ruins</div>
+                    <div class="legend-item"><span class="legend-icon">⚠️</span> Danger</div>
+                </div>
+                
+                <div class="exploration-controls">
+                    <div class="direction-buttons">
+                        <button id="explore-north-btn">North</button>
+                        <button id="explore-east-btn">East</button>
+                        <button id="explore-south-btn">South</button>
+                        <button id="explore-west-btn">West</button>
+                    </div>
+                    <div class="exploration-progress">
+                        Explored: <span id="exploration-percentage">5%</span>
+                    </div>
+                </div>
             </div>
             
             <div class="tab-content" id="analytics-tab">
@@ -819,7 +1588,9 @@
                 
                 <div class="visualization-controls">
                     <button class="visualization-toggle active" data-viz="graph">Line Graph</button>
-                    <button class="visualization-toggle" data-viz="bars">Population History</button>
+                    <button class="visualization-toggle" data-viz="population">Population</button>
+                    <button class="visualization-toggle" data-viz="resources">Resource Rates</button>
+                    <button class="visualization-toggle" data-viz="actions">Action Efficiency</button>
                 </div>
                 
                 <div class="canvas-container viz-container active" id="graph-container">
@@ -827,8 +1598,17 @@
                 </div>
                 
                 <div class="canvas-container viz-container" id="pop-history-container" style="display: none;">
-                    <h4>Population Growth</h4>
                     <div class="population-history" id="populationHistory"></div>
+                </div>
+                
+                <div class="statistics-summary">
+                    <h4>Statistics Summary</h4>
+                    <ul class="stats-list">
+                        <li>Highest Food: <span id="highest-food">10</span> (Day <span id="highest-food-day">1</span>)</li>
+                        <li>Lowest Resources: Food <span id="lowest-food">10</span>, Water <span id="lowest-water">15</span> (Day <span id="lowest-resources-day">1</span>)</li>
+                        <li>Survivors Found: <span id="total-survivors">0</span> total (<span id="survivors-per-day">0</span> per day avg)</li>
+                        <li>Production Rate: +<span id="food-rate">0</span> food, +<span id="water-rate">0</span> water, +<span id="materials-rate">0</span> materials per day</li>
+                    </ul>
                 </div>
             </div>
             
@@ -839,7 +1619,7 @@
                 <div class="settlement-details">
                     <div class="settlement-card">
                         <h4>Buildings</h4>
-                        <ul class="building-list" id="building-list">
+                        <ul class="building-list">
                             <li class="building-item">Shelters <span class="building-count" id="shelter-count">1</span></li>
                             <li class="building-item">Farms <span class="building-count" id="farm-count">0</span></li>
                             <li class="building-item">Cisterns <span class="building-count" id="cistern-count">0</span></li>
@@ -849,53 +1629,72 @@
                     
                     <div class="settlement-card">
                         <h4>Statistics</h4>
-                        <div id="settlement-stats">
-                            <p>Days Survived: <span id="days-survived">1</span></p>
-                            <p>People Rescued: <span id="people-rescued">0</span></p>
-                            <p>Explored Area: <span id="explored-area">5%</span></p>
-                            <p>Discoveries Found: <span id="discoveries-count">0</span></p>
-                            <p>Game Version: <span id="game-version">1.1.0</span></p>
-                        </div>
+                        <ul class="building-list">
+                            <li class="building-item">Days Survived <span class="building-count" id="days-survived">1</span></li>
+                            <li class="building-item">People Rescued <span class="building-count" id="people-rescued">0</span></li>
+                            <li class="building-item">Explored Area <span class="building-count" id="explored-area">5%</span></li>
+                            <li class="building-item">Discoveries <span class="building-count" id="discoveries-count">0</span></li>
+                        </ul>
                     </div>
                 </div>
                 
                 <div class="settlement-card" style="margin-top: 20px;">
-                    <h4>Settlement Actions</h4>
-                    <div class="action-buttons" style="margin-top: 10px;">
-                        <button id="build-farm-btn" disabled>Build Farm (3 materials)</button>
-                        <button id="build-cistern-btn" disabled>Build Cistern (4 materials)</button>
-                        <button id="build-workshop-btn" disabled>Build Workshop (5 materials)</button>
+                    <h4>Build New Structures</h4>
+                    <p class="tab-description">Construct buildings to improve your settlement's capabilities.</p>
+                    <div class="action-buttons">
+                        <button id="build-farm-btn">Build Farm (3 materials)</button>
+                        <button id="build-cistern-btn">Build Cistern (4 materials)</button>
+                        <button id="build-workshop-btn">Build Workshop (5 materials)</button>
                     </div>
-                    <div style="margin-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 10px;">
-                        <button id="reset-game-btn" style="background-color: #a02c2c;">Reset Game Data</button>
+                    
+                    <div class="production-rates" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
+                        <h4>Production Rates</h4>
+                        <ul class="building-list">
+                            <li class="building-item">Food: <span class="production-value">+<span id="food-production">0</span>/day</span></li>
+                            <li class="building-item">Water: <span class="production-value">+<span id="water-production">0</span>/day</span></li>
+                            <li class="building-item">Materials: <span class="production-value">+<span id="materials-production">0</span>/day</span></li>
+                        </ul>
                     </div>
                 </div>
             </div>
             
             <div class="tab-content" id="save-tab">
                 <h3>Save & Load Game</h3>
+                <p class="tab-description">Save your progress or load a previous game.</p>
+                
                 <div class="save-slots-container">
-                    <div class="save-slot" id="save-slot-1">
+                    <!-- Save Slot 1 -->
+                    <div class="save-slot">
                         <h4>Save Slot 1</h4>
-                        <div class="save-info">No save data</div>
+                        <div class="save-info" id="save1-info">
+                            Empty save slot
+                        </div>
                         <div class="save-buttons">
                             <button class="save-button" data-slot="1">Save Game</button>
                             <button class="load-button" data-slot="1" disabled>Load Game</button>
                             <button class="delete-button" data-slot="1" disabled>Delete Save</button>
                         </div>
                     </div>
-                    <div class="save-slot" id="save-slot-2">
+                    
+                    <!-- Save Slot 2 -->
+                    <div class="save-slot">
                         <h4>Save Slot 2</h4>
-                        <div class="save-info">No save data</div>
+                        <div class="save-info" id="save2-info">
+                            Empty save slot
+                        </div>
                         <div class="save-buttons">
                             <button class="save-button" data-slot="2">Save Game</button>
                             <button class="load-button" data-slot="2" disabled>Load Game</button>
                             <button class="delete-button" data-slot="2" disabled>Delete Save</button>
                         </div>
                     </div>
-                    <div class="save-slot" id="save-slot-3">
+                    
+                    <!-- Save Slot 3 -->
+                    <div class="save-slot">
                         <h4>Save Slot 3</h4>
-                        <div class="save-info">No save data</div>
+                        <div class="save-info" id="save3-info">
+                            Empty save slot
+                        </div>
                         <div class="save-buttons">
                             <button class="save-button" data-slot="3">Save Game</button>
                             <button class="load-button" data-slot="3" disabled>Load Game</button>
@@ -903,10 +1702,11 @@
                         </div>
                     </div>
                 </div>
-                <div class="reset-game-section" style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
-                    <h4>Reset Game</h4>
-                    <p>Warning: This will delete your current game progress and start a new game.</p>
-                    <button id="reset-game-button" style="background-color: #a02c2c;">Reset Game</button>
+                
+                <div class="reset-game-section">
+                    <h4>Reset Game Data</h4>
+                    <p class="tab-description warning-text">This will delete all progress. This action cannot be undone.</p>
+                    <button id="reset-game-button" class="delete-button">Reset Game</button>
                 </div>
             </div>
         </div>
@@ -1119,6 +1919,21 @@
         // Tab functionality
         const tabButtons = document.querySelectorAll('.tab-button');
         const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Get the tab id from the data attribute
+                const tabId = button.getAttribute('data-tab');
+                
+                // Remove active class from all buttons and contents
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+                
+                // Add active class to current button and content
+                button.classList.add('active');
+                document.getElementById(`${tabId}-tab`).classList.add('active');
+            });
+        });
         
         // New element references
         const mapCanvas = document.getElementById('mapCanvas');
@@ -1399,6 +2214,29 @@
                 
                 survivorList.appendChild(survivorCard);
             });
+            
+            // Add "Find More Survivors" card
+            const findSurvivorsCard = document.createElement('div');
+            findSurvivorsCard.className = 'survivor-card add-survivor-card';
+            findSurvivorsCard.id = 'find-survivors-card';
+            
+            const addSurvivorIcon = document.createElement('div');
+            addSurvivorIcon.className = 'add-survivor-icon';
+            addSurvivorIcon.textContent = '+';
+            
+            const addSurvivorText = document.createElement('div');
+            addSurvivorText.className = 'add-survivor-text';
+            addSurvivorText.textContent = 'Find More Survivors';
+            
+            const addSurvivorDescription = document.createElement('div');
+            addSurvivorDescription.className = 'add-survivor-description';
+            addSurvivorDescription.textContent = 'Explore to find others who survived the Quiet Reset';
+            
+            findSurvivorsCard.appendChild(addSurvivorIcon);
+            findSurvivorsCard.appendChild(addSurvivorText);
+            findSurvivorsCard.appendChild(addSurvivorDescription);
+            
+            survivorList.appendChild(findSurvivorsCard);
         }
         
         function updateDiscoveriesList() {
@@ -1416,7 +2254,7 @@
                 
                 const dayElement = document.createElement('div');
                 dayElement.className = 'discovery-day';
-                dayElement.textContent = discovery.day ? `Found: Day ${discovery.day}` : '';
+                dayElement.textContent = `Found: Day ${discovery.day}`;
                 
                 const contentElement = document.createElement('div');
                 contentElement.className = 'discovery-content';
