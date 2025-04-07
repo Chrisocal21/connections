@@ -600,6 +600,14 @@ class ReclaimedGame {
   }
   
   scavengeResources() {
+    // Check if we have actions remaining
+    if (!this.useAction()) {
+      return {
+        error: true,
+        message: "No actions remaining today. End the day to continue."
+      };
+    }
+    
     const foodFound = Math.floor(Math.random() * 4);
     const waterFound = Math.floor(Math.random() * 5);
     const materialsFound = Math.floor(Math.random() * 3);
@@ -618,6 +626,14 @@ class ReclaimedGame {
   }
   
   buildStructure(type) {
+    // Check if we have actions remaining
+    if (!this.useAction()) {
+      return {
+        error: true,
+        message: "No actions remaining today. End the day to continue."
+      };
+    }
+    
     const costs = {
       shelter: { materials: 2 },
       farm: { materials: 3 },
@@ -630,7 +646,10 @@ class ReclaimedGame {
     
     // Check if we have enough resources
     if (this.gameState.resources.materials < cost.materials) {
-      return false;
+      return {
+        error: true,
+        message: `Not enough materials. You need ${cost.materials} materials to build a ${type}.`
+      };
     }
     
     // Deduct cost
@@ -653,10 +672,21 @@ class ReclaimedGame {
     }
     
     this.saveGame();
-    return true;
+    return {
+      success: true,
+      message: `Successfully built a ${type}!`
+    };
   }
   
   explore() {
+    // Check if we have actions remaining
+    if (!this.useAction()) {
+      return {
+        error: true,
+        message: "No actions remaining today. End the day to continue."
+      };
+    }
+    
     const resultChance = Math.random();
     let result = {};
     
