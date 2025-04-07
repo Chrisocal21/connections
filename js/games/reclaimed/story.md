@@ -1,12 +1,8 @@
 # RECLAIMED: Story and Lore
 
-## The Quiet Reset
+## Timeline
 
-The Quiet Reset was a global event that occurred approximately 50 years before the start of the game. What initially appeared to be a series of environmental disasters, technological failures, and societal collapses was actually an orchestrated event by powerful entities to "reset" civilization.
-
-### Timeline
-
-- **Pre-Reset (2030-2035)**: Growing environmental crises, resource scarcity, and political instability.
+- **Pre-Reset (2030-2035)**: Environmental crises, resource scarcity, and political turmoil destabilize global society.
 - **Protocol Zero Activation (2035)**: Secret government and corporate coalition implements "The Quiet Reset" protocol.
 - **Operation Sleepwalker (2035-2040)**: Mass deployment of biological agents designed to place large portions of population into a stasis-like state.
 - **The Collapse (2040-2050)**: Civilization as known breaks down. Those in power retreat to secure facilities and cryosleep chambers.
@@ -37,87 +33,98 @@ As the settlement grows, challenges increase. Resources become scarcer, and host
 The player's community grows and begins to thrive. More specialized survivors join, bringing knowledge and skills. The true scope of The Quiet Reset becomes clearer.
 
 **Key Story Elements:**
-- Uncovering corporate involvement in The Quiet Reset
-- Finding military installations with information about "Operation Sleepwalker"
-- Competition with other settlements for resources
-- Developing trade networks and alliances
+- Specialized survivors contribute unique knowledge and technologies
+- Discovery of corporate and military involvement in the reset
+- Formation of alliances and trade networks with other settlements
+- Competition for resources and territory increases
 
 ### Phase 4: Revelation
-The full truth about The Quiet Reset is revealed. Players learn why it was implemented and face a choice about the future of their new civilization.
+The final phase focuses on uncovering the full truth behind The Quiet Reset and deciding the future path of the reborn civilization.
 
 **Key Story Elements:**
-- Discovery of the biological agent used to put population in stasis
-- Finding pre-Reset survivor journals and testimonies
-- Uncovering the identities of those who orchestrated The Quiet Reset
-- Possibility of awakening more of humanity from stasis
+- Uncovering the complete truth behind "The Quiet Reset"
+- Discovery of the biological stasis agent that affected most of humanity
+- Personal testimonies from survivors who witnessed the initial stages
+- Critical decisions about awakening additional survivors and shaping humanity's future
 
 ## Key Locations
 
-- **Cryostasis Facility Alpha**: Where the player awakens, a partially failed long-term human storage facility
-- **New Haven**: The player's growing settlement
-- **The Wastes**: Areas heavily damaged during the collapse
-- **Reclamation Zones**: Areas where nature has reclaimed urban environments
-- **Old Government Bunkers**: Hidden facilities with crucial information
-- **Corporate Sanctuaries**: Luxury bunkers where executives retreated
+### Cryostasis Facility Alpha
+The player's starting location. A partially failed cryosleep facility with valuable technology but limited resources.
 
-## Survivor Types and Their Stories
+### New Haven
+The primary settlement established by the player and initial survivors. Grows and develops based on player decisions.
 
-### Common Survivor Backgrounds
+### The Wastes
+Areas that were particularly devastated by the environmental collapse that preceded the reset.
 
-- **Former Military**: Trained personnel who were either in cryosleep or survived through military-grade supplies
-- **Medical Workers**: Doctors and nurses who have essential skills for the new world
-- **Engineers**: Technical experts who can help rebuild infrastructure
-- **Teachers/Academics**: Possess knowledge that could be lost otherwise
-- **Children**: Born after The Quiet Reset or very young when it occurred
-- **Farmers**: Practical knowledge of agriculture and animal husbandry
-- **Bandits**: Those who turned to violence to survive
-- **Specialists**: People with unique knowledge (botanists, hydrologists, etc.)
+### Reclamation Zones
+Former urban areas now largely reclaimed by nature. Rich in scavengeable materials but potentially dangerous.
 
-### Leadership Dynamics
+### Old Government Bunkers
+Hidden facilities containing classified information about the reset and potentially valuable resources.
 
-Leadership is a key resource in the game. As the first awakened, the player automatically becomes the settlement's leader. Leadership score affects:
-- Ability to convince hostile survivors to join
-- Efficiency of resource gathering
-- Morale and productivity of the settlement
-- Resistance to negative events
+### Corporate Sanctuaries
+Luxury bunkers built by corporate executives to ride out the collapse in comfort. Well-stocked but may be defended.
+
+## Survivor Types
+
+The game features a variety of survivor types, each bringing different skills and perspectives:
+- Military personnel with combat and strategic expertise
+- Medical professionals vital for community health
+- Engineers who can improve infrastructure and technology
+- Teachers who preserve and share knowledge
+- Farmers skilled at sustainable food production
+- Children who represent the future generation
+- Bandits who take resources by force
+- Specialists with unique knowledge or abilities
+
+## Leadership Dynamics
+
+The player's leadership approach impacts:
+- Community morale and cooperation
+- Resource production and efficiency
+- Conflict resolution with other groups
+- Decision-making in crisis situations
 
 ## Key Discoveries
 
-1. **Protocol Zero Document**: Government directive to prepare for a "controlled environmental reset"
-2. **Corporate Memo**: Evidence that corporate executives knew about and prepared for The Quiet Reset
-3. **Military Transmission**: Details about Operation Sleepwalker
-4. **Research Notes**: Information about the biological agent used to put people in stasis
-5. **Survivor's Journal**: First-hand account of the implementation of The Quiet Reset
+Throughout the game, players can uncover key information that reveals the truth about The Quiet Reset:
 
-## Curveballs (Post Day 5)
+- **Protocol Zero Document**: Outlines the intentional plan to reset civilization
+- **Corporate Memo**: Reveals corporate complicity in the reset
+- **Military Transmission**: Details about Operation Sleepwalker deployment
+- **Research Notes**: Information about the biological stasis agent
+- **Survivor's Journal**: First-hand account of the early days of the reset
 
-After Day 5, the game introduces more challenging events that test the player's ability to manage resources and make difficult decisions.
+## Curveballs (Post-Day 5)
 
-### Types of Curveballs
+After the initial establishment phase, players face increasing challenges:
 
-1. **Environmental Challenges**:
-   - Harsh weather destroying structures
-   - Water sources drying up
-   - Food contamination
+### Environmental Challenges
+- Extreme weather events
+- Water source contamination
+- Seasonal resource scarcity
 
-2. **Human Conflicts**:
-   - Hostile survivors demanding resources
-   - Territorial disputes
-   - Betrayals within the community
+### Human Conflicts
+- Hostile survivor groups
+- Internal community discord
+- Territory disputes
 
-3. **Resource Crises**:
-   - Critical shortages
-   - Equipment failures
-   - Illness reducing productivity
+### Resource Crises
+- Critical supply shortages
+- Equipment failures
+- Disease outbreaks
 
-4. **Ethical Dilemmas**:
-   - Choosing between helping others and protecting your own
-   - Deciding how to use limited medical supplies
-   - Determining who can join your limited-capacity settlement
+### Ethical Dilemmas
+- Difficult choices about resource allocation
+- Decisions about who to help or turn away
+- Community governance challenges
 
 ## Game Mechanics Tied to Story
 
-- **Leadership Score**: Represents the player's ability to guide their community
-- **Survivor Skills**: Different survivor types bring different advantages
-- **Story Phase Progression**: Advancing through story phases unlocks new building types and survivor specializations
-- **Discoveries**: Finding story elements provides both narrative progression and gameplay benefits
+The narrative of RECLAIMED is deeply integrated with gameplay:
+- Leadership score reflects the community's trust in the player
+- Survivor skills directly impact settlement capabilities
+- Phase progression unlocks new areas and challenges
+- Story-driven discoveries provide both narrative and gameplay advantages
