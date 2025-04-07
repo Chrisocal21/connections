@@ -451,6 +451,143 @@
         .mobile-leadership {
             background: rgba(95, 30, 75, 0.8);
         }
+        
+        .journal-entries {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-top: 15px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .journal-entry {
+            background-color: rgba(40, 40, 40, 0.8);
+            border-radius: 5px;
+            padding: 20px;
+            text-align: left;
+            border-left: 3px solid #64D9FF;
+        }
+
+        .journal-title {
+            font-weight: bold;
+            font-size: 1.2em;
+            color: #64D9FF;
+            margin-bottom: 5px;
+        }
+
+        .journal-author {
+            font-style: italic;
+            color: #aaa;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+        }
+
+        .journal-text {
+            line-height: 1.6;
+            white-space: pre-line;
+        }
+
+        .journal-day {
+            font-size: 0.8em;
+            color: #999;
+            text-align: right;
+            margin-top: 10px;
+        }
+
+        .empty-journal-message {
+            font-style: italic;
+            color: #999;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .weather-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 15px 0;
+            padding: 10px;
+            background-color: rgba(30, 30, 30, 0.7);
+            border-radius: 5px;
+        }
+
+        .weather-icon {
+            font-size: 1.5em;
+            margin-right: 10px;
+        }
+
+        .weather-info {
+            text-align: left;
+        }
+
+        .weather-type {
+            font-weight: bold;
+            color: #64D9FF;
+        }
+
+        .weather-description {
+            font-size: 0.9em;
+            color: #ccc;
+        }
+
+        .actions-counter {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px 0;
+            padding: 8px;
+            background-color: rgba(30, 30, 30, 0.7);
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+
+        .actions-value {
+            font-weight: bold;
+            color: #64D9FF;
+            margin: 0 5px;
+        }
+
+        .quest-container {
+            background-color: rgba(30, 58, 95, 0.3);
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 3px solid #64D9FF;
+        }
+
+        .quest-title {
+            font-weight: bold;
+            color: #64D9FF;
+            margin-bottom: 5px;
+        }
+
+        .quest-description {
+            margin-bottom: 15px;
+            font-size: 0.9em;
+        }
+
+        .quest-objectives {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .quest-objective {
+            display: flex;
+            align-items: center;
+            padding: 5px 0;
+        }
+
+        .objective-status {
+            margin-right: 10px;
+            color: #999;
+        }
+
+        .objective-complete {
+            color: #8be9a0;
+            text-decoration: line-through;
+        }
     </style>
 </head>
 <body>
@@ -472,6 +609,18 @@
     
     <div id="game-container">
         <div id="game-status">You wake from cryosleep. The world is silent. Your pod is one of few that survived.</div>
+        
+        <div class="weather-container" id="weather-container">
+            <div class="weather-icon" id="weather-icon">☀️</div>
+            <div class="weather-info">
+                <div class="weather-type" id="weather-type">Clear</div>
+                <div class="weather-description" id="weather-description">A clear day with good visibility.</div>
+            </div>
+        </div>
+        
+        <div class="actions-counter">
+            Actions Remaining: <span class="actions-value" id="actions-remaining">5</span> / <span id="max-actions">5</span>
+        </div>
         
         <div class="resources">
             <div class="resource">
@@ -502,6 +651,7 @@
         <div class="tab-container">
             <div class="tab-buttons">
                 <button class="tab-button active" data-tab="events">Events</button>
+                <button class="tab-button" data-tab="journal">Journal</button>
                 <button class="tab-button" data-tab="survivors">Survivors</button>
                 <button class="tab-button" data-tab="story">Story</button>
                 <button class="tab-button" data-tab="map">Map</button>
@@ -512,6 +662,15 @@
             <div class="tab-content active" id="events-tab">
                 <div class="event-log" id="event-log">
                     <div class="event-entry">Day 1: You wake up in a cryopod facility. Most systems have failed. The outside world is unrecognizable.</div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="journal-tab">
+                <h3>Journal Entries</h3>
+                <p class="tab-description">Personal accounts and stories from survivors of the Quiet Reset.</p>
+                <div class="journal-entries" id="journal-entries-list">
+                    <!-- Journal entries will be added here -->
+                    <div class="empty-journal-message">No journal entries found yet. Continue your journey to discover more.</div>
                 </div>
             </div>
             
@@ -908,6 +1067,9 @@
             mapGenerator = new ReclaimedMapGenerator('mapCanvas', game.gameState);
             resourceGraph = new ReclaimedGraphRenderer('resourceGraph');
             
+            // Make sure to render the map immediately
+            mapGenerator.render();
+            
             // Add initial data point for graph
             resourceGraph.addDataPoint(game.gameState.day, game.gameState.resources);
             
@@ -928,6 +1090,11 @@
             waterValue.textContent = Math.floor(game.gameState.resources.water);
             materialsValue.textContent = Math.floor(game.gameState.resources.materials);
             peopleValue.textContent = game.gameState.resources.people;
+            
+            // Update story elements
+            updateJournalEntries();
+            updateWeatherDisplay();
+            updateActionsCounter();
             
             // Update game version display
             if (gameVersionDisplay) {
@@ -953,12 +1120,16 @@
                 warningIndicator.style.display = 'none';
             }
             
-            // Disable buttons if resources are too low
+            // Disable buttons if resources are too low or no actions remaining
             if (game.gameState.resources.food <= 0 || game.gameState.resources.water <= 0) {
                 scavengeBtn.disabled = true;
                 buildBtn.disabled = true;
                 exploreBtn.disabled = true;
                 gameStatus.textContent = "Your colony is in critical condition. You need food and water to continue.";
+            } else if (game.gameState.actionsRemaining <= 0) {
+                scavengeBtn.disabled = true;
+                buildBtn.disabled = true;
+                exploreBtn.disabled = true;
             } else {
                 scavengeBtn.disabled = false;
                 buildBtn.disabled = game.gameState.resources.materials < 2;
@@ -983,9 +1154,9 @@
             discoveriesCount.textContent = game.gameState.discoveries.length;
             
             // Update building buttons
-            buildFarmBtn.disabled = game.gameState.resources.materials < 3;
-            buildCisternBtn.disabled = game.gameState.resources.materials < 4;
-            buildWorkshopBtn.disabled = game.gameState.resources.materials < 5;
+            buildFarmBtn.disabled = game.gameState.resources.materials < 3 || game.gameState.actionsRemaining <= 0;
+            buildCisternBtn.disabled = game.gameState.resources.materials < 4 || game.gameState.actionsRemaining <= 0;
+            buildWorkshopBtn.disabled = game.gameState.resources.materials < 5 || game.gameState.actionsRemaining <= 0;
             
             // Update visualizations
             if (mapGenerator && game.gameState.day > 1) {
@@ -1149,6 +1320,12 @@
         
         // Action: Scavenge for resources
         scavengeBtn.addEventListener('click', () => {
+            // Check if action can be performed
+            if (!game.useAction()) {
+                gameStatus.textContent = "You're too tired to scavenge. Rest until tomorrow.";
+                return;
+            }
+            
             const foodFound = Math.floor(Math.random() * 4);
             const waterFound = Math.floor(Math.random() * 5);
             const materialsFound = Math.floor(Math.random() * 3);
@@ -1165,6 +1342,12 @@
         
         // Action: Build shelter
         buildBtn.addEventListener('click', () => {
+            // Check if action can be performed
+            if (!game.useAction()) {
+                gameStatus.textContent = "You're too tired to build. Rest until tomorrow.";
+                return;
+            }
+            
             if (game.gameState.resources.materials >= 2) {
                 game.gameState.resources.materials -= 2;
                 game.gameState.buildings.shelters += 1;
@@ -1178,6 +1361,12 @@
         
         // Action: Explore area
         exploreBtn.addEventListener('click', () => {
+            // Check if action can be performed
+            if (!game.useAction()) {
+                gameStatus.textContent = "You're too tired to explore. Rest until tomorrow.";
+                return;
+            }
+            
             const result = game.explore();
             
             gameStatus.textContent = result.message;
@@ -1229,6 +1418,205 @@
                 updateUI();
             }
         });
+        
+        // New elements for story
+        const journalEntriesList = document.getElementById('journal-entries-list');
+        const weatherIcon = document.getElementById('weather-icon');
+        const weatherType = document.getElementById('weather-type');
+        const weatherDescription = document.getElementById('weather-description');
+        const actionsRemaining = document.getElementById('actions-remaining');
+        const maxActions = document.getElementById('max-actions');
+        
+        // Update journal entries
+        function updateJournalEntries() {
+            // Clear current entries
+            journalEntriesList.innerHTML = '';
+            
+            if (game.gameState.journal.length === 0) {
+                const emptyMessage = document.createElement('div');
+                emptyMessage.className = 'empty-journal-message';
+                emptyMessage.textContent = 'No journal entries found yet. Continue your journey to discover more.';
+                journalEntriesList.appendChild(emptyMessage);
+                return;
+            }
+            
+            // Add each journal entry
+            game.gameState.journal.forEach(entry => {
+                const journalEntry = document.createElement('div');
+                journalEntry.className = 'journal-entry';
+                
+                const titleElement = document.createElement('div');
+                titleElement.className = 'journal-title';
+                titleElement.textContent = entry.title;
+                
+                const authorElement = document.createElement('div');
+                authorElement.className = 'journal-author';
+                authorElement.textContent = `By ${entry.author}`;
+                
+                const textElement = document.createElement('div');
+                textElement.className = 'journal-text';
+                textElement.textContent = entry.text;
+                
+                const dayElement = document.createElement('div');
+                dayElement.className = 'journal-day';
+                dayElement.textContent = `Found on Day ${entry.day}`;
+                
+                journalEntry.appendChild(titleElement);
+                journalEntry.appendChild(authorElement);
+                journalEntry.appendChild(textElement);
+                journalEntry.appendChild(dayElement);
+                
+                journalEntriesList.appendChild(journalEntry);
+            });
+        }
+        
+        // Update weather display
+        function updateWeatherDisplay() {
+            const weather = game.gameState.weather;
+            
+            // Set weather type
+            weatherType.textContent = weather;
+            
+            // Set weather description if available
+            if (game.weatherTypes[weather]) {
+                weatherDescription.textContent = game.weatherTypes[weather].description;
+            } else {
+                weatherDescription.textContent = "Current weather conditions.";
+            }
+            
+            // Set weather icon
+            switch(weather) {
+                case 'Clear':
+                    weatherIcon.textContent = '☀️';
+                    break;
+                case 'Rainy':
+                    weatherIcon.textContent = '🌧️';
+                    break;
+                case 'Stormy':
+                    weatherIcon.textContent = '⛈️';
+                    break;
+                case 'Foggy':
+                    weatherIcon.textContent = '🌫️';
+                    break;
+                case 'Hot':
+                    weatherIcon.textContent = '🔥';
+                    break;
+                case 'Cold':
+                    weatherIcon.textContent = '❄️';
+                    break;
+                default:
+                    weatherIcon.textContent = '☀️';
+            }
+        }
+        
+        // Update actions counter
+        function updateActionsCounter() {
+            actionsRemaining.textContent = game.gameState.actionsRemaining;
+            maxActions.textContent = game.gameState.maxActionsPerDay;
+            
+            // Disable action buttons if no actions remaining
+            const actionButtons = [scavengeBtn, buildBtn, exploreBtn];
+            
+            if (game.gameState.actionsRemaining <= 0) {
+                actionButtons.forEach(btn => {
+                    btn.disabled = true;
+                });
+            }
+        }
+        
+        // Modify the existing updateUI function to include new UI elements
+        function updateUI() {
+            // Update both desktop and mobile indicators
+            dayDisplay.textContent = `Day ${game.gameState.day}`;
+            document.getElementById('mobile-day-display').textContent = `${game.gameState.day}`;
+            
+            leadershipDisplay.innerHTML = `<span class="leadership-icon">👑</span> Leadership: ${game.gameState.leadershipScore}`;
+            document.getElementById('mobile-leadership-display').textContent = game.gameState.leadershipScore;
+            
+            foodValue.textContent = Math.floor(game.gameState.resources.food);
+            waterValue.textContent = Math.floor(game.gameState.resources.water);
+            materialsValue.textContent = Math.floor(game.gameState.resources.materials);
+            peopleValue.textContent = game.gameState.resources.people;
+            
+            // Update story elements
+            updateJournalEntries();
+            updateWeatherDisplay();
+            updateActionsCounter();
+            
+            // Update game version display
+            if (gameVersionDisplay) {
+                gameVersionDisplay.textContent = game.gameState.version || game.gameVersion || "1.1.0";
+            }
+            
+            // Update survivors tab
+            updateSurvivorsList();
+            
+            // Update discoveries tab
+            updateDiscoveriesList();
+            
+            // Update story phase markers
+            updateStoryPhase();
+            
+            // Show warning if resources are critically low
+            if (game.gameState.resources.food <= 1 || game.gameState.resources.water <= 1) {
+                warningIndicator.style.display = 'block';
+                warningIndicator.textContent = `Warning: ${
+                    game.gameState.resources.food <= 1 ? 'Food' : 'Water'
+                } critically low!`;
+            } else {
+                warningIndicator.style.display = 'none';
+            }
+            
+            // Disable buttons if resources are too low or no actions remaining
+            if (game.gameState.resources.food <= 0 || game.gameState.resources.water <= 0) {
+                scavengeBtn.disabled = true;
+                buildBtn.disabled = true;
+                exploreBtn.disabled = true;
+                gameStatus.textContent = "Your colony is in critical condition. You need food and water to continue.";
+            } else if (game.gameState.actionsRemaining <= 0) {
+                scavengeBtn.disabled = true;
+                buildBtn.disabled = true;
+                exploreBtn.disabled = true;
+            } else {
+                scavengeBtn.disabled = false;
+                buildBtn.disabled = game.gameState.resources.materials < 2;
+                exploreBtn.disabled = false;
+            }
+            
+            // After day 5, update UI to indicate more challenging gameplay
+            if (game.gameState.day > 5 && game.gameState.day < 8) {
+                gameStatus.innerHTML += "<br><small>The world is becoming more challenging as resources grow scarce and others fight to survive...</small>";
+            }
+            
+            // Update building counts
+            shelterCount.textContent = game.gameState.buildings.shelters;
+            farmCount.textContent = game.gameState.buildings.farms;
+            cisternCount.textContent = game.gameState.buildings.cisterns;
+            workshopCount.textContent = game.gameState.buildings.workshops;
+            
+            // Update settlement stats
+            daysSurvived.textContent = game.gameState.day;
+            peopleRescued.textContent = game.gameState.survivors.length;
+            exploredArea.textContent = Math.min(100, Math.floor(5 + (game.gameState.day * 3))) + '%';
+            discoveriesCount.textContent = game.gameState.discoveries.length;
+            
+            // Update building buttons
+            buildFarmBtn.disabled = game.gameState.resources.materials < 3 || game.gameState.actionsRemaining <= 0;
+            buildCisternBtn.disabled = game.gameState.resources.materials < 4 || game.gameState.actionsRemaining <= 0;
+            buildWorkshopBtn.disabled = game.gameState.resources.materials < 5 || game.gameState.actionsRemaining <= 0;
+            
+            // Update visualizations
+            if (mapGenerator && game.gameState.day > 1) {
+                mapGenerator.updateMap(game.gameState);
+            }
+            
+            if (resourceGraph && game.gameState.day > 1) {
+                resourceGraph.addDataPoint(game.gameState.day, game.gameState.resources);
+            }
+            
+            // Update population history
+            updatePopulationHistory(game.gameState.resources.people);
+        }
         
         // Initialize UI
         updateUI();

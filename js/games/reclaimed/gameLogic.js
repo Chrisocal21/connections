@@ -28,7 +28,182 @@ class ReclaimedGame {
       discoveries: [],
       survivors: [],
       leadershipScore: 0,
-      storyPhase: 'awakening' // awakening, survival, expansion, revelation
+      storyPhase: 'awakening', // awakening, survival, expansion, revelation
+      journal: [], // New array to store journal entries
+      actionsRemaining: 5, // Add daily action limit
+      maxActionsPerDay: 5, // Max actions per day
+      weather: 'Clear' // Current weather
+    };
+    
+    // Initialize story journal entries
+    this.journalEntries = {
+      1: {
+        title: "Awakening",
+        author: "Sam",
+        text: "I woke from stasis today. It's hard to put into words what I'm feeling. The world I knew is gone, and an impossible quiet has taken its place. I keep thinking I'll hear a car horn or a voice in the distance... but there's nothing. Just wind and my own footsteps."
+      },
+      3: {
+        title: "Finding Hope",
+        author: "Aria",
+        text: "I can barely keep my hand steady to write this—I'm that excited. A few hours ago, Sam and I spotted smoke on the horizon. Smoke means people. It means someone else is out there!"
+      },
+      5: {
+        title: "Not Alone",
+        author: "Riley",
+        text: "It's been almost two months since I woke up to this empty world. I haven't seen another living person since the day I crawled out of my bunker... until today. I found others. I'm not alone anymore."
+      },
+      7: {
+        title: "Silent City",
+        author: "Sam",
+        text: "We reached the city today. The silence here is different - heavier somehow. Buildings that once housed thousands stand empty, with trees growing from windows and rooftops. It's beautiful in a haunting way. I keep wondering what happened to everyone. Did they know it was coming?"
+      },
+      10: {
+        title: "First Signs",
+        author: "Aria",
+        text: "Found a newspaper from just before the Quiet Reset. The headline mentioned a 'mysterious phenomenon' alarming scientists. Whatever happened, it seems some people knew something was wrong. The real question is: why were we chosen to survive in the cryo-chambers?"
+      },
+      15: {
+        title: "Reclaiming",
+        author: "Riley",
+        text: "Our little settlement is growing. It's strange to build something new in the shadow of the old world. Sometimes I look at the silent buildings around us and feel like we're being watched. But then I see what we've created, and I feel something I haven't felt in a long time: pride."
+      }
+    };
+    
+    // Initialize character data
+    this.characters = {
+      sam: {
+        name: "Sam Cole",
+        description: "A former systems engineer with a pragmatic approach to problems.",
+        dialogues: {
+          introduction: "I was a technician before the Quiet Reset. Good with machines, not so much with people. Guess that's changing now that there aren't many of us left.",
+          scavenge: [
+            "I think I see something useful over there.",
+            "We should check that building for electronics.",
+            "If we find any batteries or solar cells, we could use them."
+          ],
+          base: [
+            "With a few more solar panels, we could expand the automation system.",
+            "I've been mapping the area. There's a lot we could reclaim."
+          ]
+        }
+      },
+      aria: {
+        name: "Dr. Aria Zhao",
+        description: "A scientist who worked on the cryo program before the Quiet Reset.",
+        dialogues: {
+          introduction: "I helped design the cryo facilities. Never thought I'd actually need to use one. I know about the Quiet Reset... well, at least what they told us.",
+          medical: [
+            "I could set up a proper medical station if we find the right supplies.",
+            "Keep an eye out for antibiotics or medical equipment."
+          ],
+          research: [
+            "I've been analyzing what might have happened. The clues are there, if we look carefully.",
+            "There's something about this silence that doesn't feel... natural."
+          ]
+        }
+      },
+      riley: {
+        name: "Riley Porter",
+        description: "A former security officer with survival skills honed by necessity.",
+        dialogues: {
+          introduction: "I was security for one of the cryo facilities. Woke up alone six months ago. Been moving ever since, looking for others.",
+          hunting: [
+            "I can teach you how to set traps for small game.",
+            "The wildlife has thrived since we disappeared."
+          ],
+          defense: [
+            "We should secure the perimeter. Just because we haven't seen other people doesn't mean they're not out there.",
+            "I'll take first watch tonight."
+          ]
+        }
+      }
+    };
+    
+    // Story-driven quests
+    this.quests = {
+      "awakening": {
+        title: "Awakening",
+        description: "Find your way out of the bunker and learn what happened to the world.",
+        objectives: [
+          { id: "explore_bunker", text: "Explore the cryo facility", completed: false },
+          { id: "find_supplies", text: "Gather basic supplies", completed: false },
+          { id: "exit_bunker", text: "Find the exit to the surface", completed: false }
+        ],
+        rewards: {
+          resources: { food: 5, water: 5 },
+          items: ["basic_toolkit"]
+        },
+        followUp: "silent_streets"
+      },
+      "silent_streets": {
+        title: "Silent Streets",
+        description: "Explore the abandoned town and gather resources for survival.",
+        objectives: [
+          { id: "visit_store", text: "Check the grocery store for supplies", completed: false },
+          { id: "find_map", text: "Find a map of the surrounding area", completed: false },
+          { id: "secure_shelter", text: "Secure a temporary shelter for the night", completed: false }
+        ],
+        rewards: {
+          resources: { food: 10, water: 8, materials: 5 },
+          items: ["crank_flashlight"]
+        },
+        followUp: "distant_smoke"
+      },
+      "distant_smoke": {
+        title: "Distant Smoke",
+        description: "Investigate the smoke on the horizon - could someone else be out there?",
+        objectives: [
+          { id: "track_smoke", text: "Follow the smoke to its source", completed: false },
+          { id: "meet_riley", text: "Meet the survivor", completed: false },
+          { id: "share_stories", text: "Exchange information about the Quiet Reset", completed: false }
+        ],
+        rewards: {
+          resources: { food: 5, water: 5, materials: 3 },
+          companions: ["riley"]
+        },
+        followUp: "city_approach"
+      }
+    };
+    
+    // Weather types with effects on gameplay
+    this.weatherTypes = {
+      'Clear': {
+        description: "A clear day with good visibility.",
+        effects: {}
+      },
+      'Rainy': {
+        description: "Rain falls steadily. Good for collecting water, harder for hunting.",
+        effects: {
+          waterCollectionMultiplier: 1.5,
+          huntingSuccessModifier: 0.8
+        }
+      },
+      'Stormy': {
+        description: "A severe storm with heavy wind and rain.",
+        effects: {
+          waterCollectionMultiplier: 2.0,
+          huntingSuccessModifier: 0.5,
+          scavengeSuccessModifier: 0.7
+        }
+      },
+      'Foggy': {
+        description: "A thick fog limits visibility.",
+        effects: {
+          huntingSuccessModifier: 0.7
+        }
+      },
+      'Hot': {
+        description: "Unusually hot day. Requires more water.",
+        effects: {
+          waterConsumptionModifier: 1.5
+        }
+      },
+      'Cold': {
+        description: "Bitterly cold. Requires more food for energy.",
+        effects: {
+          foodConsumptionModifier: 1.5
+        }
+      }
     };
     
     this.init();
@@ -89,7 +264,11 @@ class ReclaimedGame {
       discoveries: oldState.discoveries || [],
       survivors: oldState.survivors || [],
       leadershipScore: oldState.leadershipScore || 0,
-      storyPhase: oldState.storyPhase || 'awakening'
+      storyPhase: oldState.storyPhase || 'awakening',
+      journal: oldState.journal || [],
+      actionsRemaining: oldState.actionsRemaining || 5,
+      maxActionsPerDay: oldState.maxActionsPerDay || 5,
+      weather: oldState.weather || 'Clear'
     };
     
     console.log("Upgraded game state to version", this.gameVersion);
@@ -107,6 +286,15 @@ class ReclaimedGame {
     this.gameState.day++;
     this.consumeResources();
     
+    // Reset daily actions
+    this.resetDailyActions();
+    
+    // Determine new weather
+    this.determineWeather();
+    
+    // Check for journal entries
+    const journalEntry = this.unlockJournalEntry();
+    
     // Determine event type based on day progression
     if (this.gameState.day > 5) {
       // After day 5, introduce curveballs
@@ -115,11 +303,15 @@ class ReclaimedGame {
       this.generateRandomEvent();
     }
     
+    // Progress story phase based on day
+    this.progressStoryPhase();
+    
     this.saveGame();
     
     return {
       message: `Day ${this.gameState.day} begins. Your small community survives another day.`,
-      state: this.gameState
+      state: this.gameState,
+      journal: journalEntry
     };
   }
   
@@ -552,13 +744,171 @@ class ReclaimedGame {
       discoveries: [],
       survivors: [],
       leadershipScore: 0,
-      storyPhase: 'awakening' // awakening, survival, expansion, revelation
+      storyPhase: 'awakening', // awakening, survival, expansion, revelation
+      journal: [],
+      actionsRemaining: 5,
+      maxActionsPerDay: 5,
+      weather: 'Clear'
     };
     this.saveGame();
   }
-}
 
-// Export for use in the game
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = ReclaimedGame;
+  // Add journal entry functionality 
+  unlockJournalEntry() {
+    if (this.journalEntries[this.gameState.day]) {
+      const entry = this.journalEntries[this.gameState.day];
+      entry.day = this.gameState.day; // Add day information
+      
+      // Add to player's journal
+      this.gameState.journal.push(entry);
+      
+      // Add journal discovery to events log
+      const journalEvent = {
+        day: this.gameState.day,
+        type: "journal",
+        text: `Found a journal entry: "${entry.title}" by ${entry.author}.`,
+        effect: "journal"
+      };
+      
+      this.gameState.events.push(journalEvent);
+      
+      return entry;
+    }
+    
+    return null;
+  }
+
+  // Handle action limits
+  useAction() {
+    if (this.gameState.actionsRemaining > 0) {
+      this.gameState.actionsRemaining--;
+      this.saveGame();
+      return true;
+    }
+    return false;
+  }
+
+  // Reset daily actions
+  resetDailyActions() {
+    this.gameState.actionsRemaining = this.gameState.maxActionsPerDay;
+    this.saveGame();
+  }
+
+  // Get random character dialogue
+  getCharacterDialogue(character, context) {
+    if (!this.characters[character] || !this.characters[character].dialogues[context]) {
+      return null;
+    }
+    
+    const dialogues = this.characters[character].dialogues[context];
+    if (Array.isArray(dialogues)) {
+      return dialogues[Math.floor(Math.random() * dialogues.length)];
+    }
+    
+    return dialogues;
+  }
+
+  // Determine weather for the day
+  determineWeather() {
+    const weatherKeys = Object.keys(this.weatherTypes);
+    this.gameState.weather = weatherKeys[Math.floor(Math.random() * weatherKeys.length)];
+    
+    return {
+      type: this.gameState.weather,
+      description: this.weatherTypes[this.gameState.weather].description,
+      effects: this.weatherTypes[this.gameState.weather].effects
+    };
+  }
+
+  // Progress story phases based on days and discoveries
+  progressStoryPhase() {
+    // Natural story progression based on days
+    if (this.gameState.day >= 5 && this.gameState.storyPhase === 'awakening') {
+      this.gameState.storyPhase = 'survival';
+    } else if (this.gameState.day >= 12 && this.gameState.storyPhase === 'survival') {
+      this.gameState.storyPhase = 'expansion';
+    } else if (this.gameState.day >= 20 && this.gameState.storyPhase === 'expansion') {
+      this.gameState.storyPhase = 'revelation';
+    }
+  }
+
+  // Get active quest status
+  getActiveQuest() {
+    // Find current active quest based on story phase
+    switch(this.gameState.storyPhase) {
+      case 'awakening':
+        return this.quests["awakening"];
+      case 'survival':
+        return this.quests["silent_streets"];
+      case 'expansion':
+        return this.quests["distant_smoke"];
+      default:
+        return null;
+    }
+  }
+
+  // Complete a quest objective
+  completeObjective(objectiveId) {
+    const activeQuest = this.getActiveQuest();
+    if (!activeQuest) return false;
+    
+    const objective = activeQuest.objectives.find(obj => obj.id === objectiveId);
+    if (objective && !objective.completed) {
+      objective.completed = true;
+      
+      // Log the completion
+      const objectiveEvent = {
+        day: this.gameState.day,
+        type: "objective",
+        text: `Completed objective: ${objective.text}`,
+        effect: "progress"
+      };
+      
+      this.gameState.events.push(objectiveEvent);
+      this.saveGame();
+      
+      // Check if all objectives are completed
+      if (activeQuest.objectives.every(obj => obj.completed)) {
+        return this.completeQuest(activeQuest);
+      }
+      
+      return true;
+    }
+    
+    return false;
+  }
+
+  // Complete a quest and give rewards
+  completeQuest(quest) {
+    // Give rewards
+    if (quest.rewards.resources) {
+      Object.keys(quest.rewards.resources).forEach(resource => {
+        this.gameState.resources[resource] += quest.rewards.resources[resource];
+      });
+    }
+    
+    // Add journal entry for quest completion
+    const questCompletionEntry = {
+      title: `Quest Completed: ${quest.title}`,
+      author: "Settlement Log",
+      text: `Successfully completed ${quest.title}. ${quest.description} The settlement grows stronger.`,
+      day: this.gameState.day
+    };
+    
+    this.gameState.journal.push(questCompletionEntry);
+    
+    // Log the completion
+    const questEvent = {
+      day: this.gameState.day,
+      type: "quest",
+      text: `Completed quest: ${quest.title}`,
+      effect: "completion"
+    };
+    
+    this.gameState.events.push(questEvent);
+    this.gameState.leadershipScore += 3;
+    this.saveGame();
+    
+    return true;
+  }
 }
