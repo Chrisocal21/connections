@@ -1876,7 +1876,7 @@
             errorDiv.style.zIndex = '9999';
             errorDiv.style.display = 'flex';
             errorDiv.style.flexDirection = 'column';
-            errorDiv.style.alignItems: 'center';
+            errorDiv.style.alignItems = 'center';
             errorDiv.style.justifyContent = 'center';
             
             errorDiv.innerHTML = `
@@ -2501,6 +2501,30 @@
         const loadButtons = document.querySelectorAll('.load-button');
         const deleteButtons = document.querySelectorAll('.delete-button');
         const resetGameButton = document.getElementById('reset-game-button');
+        
+        // Add reset game button functionality
+        if (resetGameButton) {
+            resetGameButton.addEventListener('click', () => {
+                if (confirm('Are you sure you want to reset the game? All progress will be lost.')) {
+                    game.resetGame();
+                    showMessage('Game reset successfully!');
+                    
+                    // Add to event log
+                    const eventEntry = document.createElement('div');
+                    eventEntry.className = 'event-entry';
+                    eventEntry.textContent = `Game has been reset to day 1.`;
+                    
+                    if (eventLog) eventLog.prepend(eventEntry);
+                    if (recentEvents) {
+                        recentEvents.innerHTML = '';
+                        recentEvents.prepend(eventEntry.cloneNode(true));
+                    }
+                    
+                    // Comprehensive UI update
+                    updateUI();
+                }
+            });
+        }
         
         // Show message helper function
         function showMessage(message) {
