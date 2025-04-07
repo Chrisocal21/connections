@@ -608,10 +608,34 @@ class ReclaimedGame {
       };
     }
     
-    const foodFound = Math.floor(Math.random() * 4);
-    const waterFound = Math.floor(Math.random() * 5);
-    const materialsFound = Math.floor(Math.random() * 3);
+    // Get weather effects
+    const weather = this.weatherTypes[this.gameState.weather] || this.weatherTypes['Clear'];
+    const weatherEffects = weather.effects || {};
     
+    // Base amounts
+    let foodFound = Math.floor(Math.random() * 4) + 1;
+    let waterFound = Math.floor(Math.random() * 5) + 1;
+    let materialsFound = Math.floor(Math.random() * 3) + 1;
+    
+    // Apply weather modifiers
+    if (weatherEffects.waterCollectionMultiplier) {
+      waterFound = Math.floor(waterFound * weatherEffects.waterCollectionMultiplier);
+    }
+    
+    if (weatherEffects.scavengeSuccessModifier) {
+      foodFound = Math.floor(foodFound * weatherEffects.scavengeSuccessModifier);
+      materialsFound = Math.floor(materialsFound * weatherEffects.scavengeSuccessModifier);
+    }
+    
+    // Leadership bonus (better organization leads to better scavenging)
+    const leadershipBonus = Math.floor(this.gameState.leadershipScore / 10);
+    if (leadershipBonus > 0) {
+      foodFound += leadershipBonus;
+      waterFound += leadershipBonus;
+      materialsFound += leadershipBonus;
+    }
+    
+    // Add to resources
     this.gameState.resources.food += foodFound;
     this.gameState.resources.water += waterFound;
     this.gameState.resources.materials += materialsFound;
@@ -621,7 +645,8 @@ class ReclaimedGame {
     return {
       food: foodFound,
       water: waterFound,
-      materials: materialsFound
+      materials: materialsFound,
+      weatherEffect: this.gameState.weather !== 'Clear' ? weather.description : null
     };
   }
   
@@ -639,6 +664,13 @@ class ReclaimedGame {
       farm: { materials: 3 },
       cistern: { materials: 4 },
       workshop: { materials: 5 }
+    };
+    
+    const benefits = {
+      shelter: "Houses 2 more survivors and improves morale",
+      farm: "Produces 1 food per day automatically",
+      cistern: "Collects 1.5 water per day automatically",
+      workshop: "Produces 0.5 materials per day and improves crafting"
     };
     
     const cost = costs[type];
@@ -659,22 +691,42 @@ class ReclaimedGame {
     switch(type) {
       case 'shelter':
         this.gameState.buildings.shelters++;
+        // Leadership bonus for providing shelter
+        this.gameState.leadershipScore += 1;
         break;
       case 'farm':
         this.gameState.buildings.farms++;
+        // Knowledge of sustainable food increases leadership
+        this.gameState.leadershipScore += 1;
         break;
       case 'cistern':
         this.gameState.buildings.cisterns++;
+        // Water security increases leadership
+        this.gameState.leadershipScore += 1;
         break;
       case 'workshop':
         this.gameState.buildings.workshops++;
+        // Technical advancement increases leadership
+        this.gameState.leadershipScore += 2;
         break;
     }
+    
+    // Log building construction in events
+    const buildingEvent = {
+      day: this.gameState.day,
+      type: "construction",
+      text: `Built a new ${type}.`,
+      effect: type
+    };
+    
+    this.gameState.events.push(buildingEvent);
     
     this.saveGame();
     return {
       success: true,
-      message: `Successfully built a ${type}!`
+      message: `Successfully built a ${type}!`,
+      benefit: benefits[type],
+      leadershipGain: type === 'workshop' ? 2 : 1
     };
   }
   
@@ -690,8 +742,9 @@ class ReclaimedGame {
     const resultChance = Math.random();
     let result = {};
     
-    if (resultChance > 0.7) {
-      // Found survivors
+    // Enhanced exploration outcomes with more variety
+    if (resultChance > 0.8) {
+      // Found survivors - highest reward but least common
       const newPeople = Math.floor(Math.random() * 2) + 1;
       this.gameState.resources.people += newPeople;
       
@@ -719,8 +772,86 @@ class ReclaimedGame {
         amount: newPeople,
         message: `Found ${newPeople} survivor${newPeople > 1 ? 's' : ''}!`
       };
+    } else if (resultChance > 0.6) {
+      // Found abandoned settlement
+      const specialFind = Math.random();
+      
+      if (specialFind > 0.7) {
+        // Found a well-stocked settlement with multiple resources
+        const foodFound = Math.floor(Math.random() * 5) + 2;
+        const waterFound = Math.floor(Math.random() * 4) + 3;
+        const materialsFound = Math.floor(Math.random() * 6) + 4;
+        
+        this.gameState.resources.food += foodFound;
+        this.gameState.resources.water += waterFound;
+        this.gameState.resources.materials += materialsFound;
+        
+        result = {
+          type: 'settlement',
+          message: `Discovered an abandoned settlement with supplies! Found ${foodFound} food, ${waterFound} water, and ${materialsFound} materials.`
+        };
+      } else {
+        // Found a specialized settlement with one abundant resource
+        const resourceType = Math.random() > 0.5 ? "food" : "materials";
+        const amountFound = Math.floor(Math.random() * 8) + 5;
+        
+        this.gameState.resources[resourceType] += amountFound;
+        
+        result = {
+          type: 'settlement',
+          message: `Found a specialized ${resourceType === "food" ? "farm" : "workshop"} settlement! Gathered ${amountFound} ${resourceType}.`
+        };
+      }
     } else if (resultChance > 0.4) {
-      // Found materials
+      // Found map or journal
+      if (Math.random() > 0.5) {
+        // Found map - reveals more area on the map visualization
+        const revealedArea = Math.floor(Math.random() * 5) + 5;
+        
+        // Maps will help with future explorations (leadership bonus)
+        this.gameState.leadershipScore += 1;
+        
+        result = {
+          type: 'map',
+          revealArea: revealedArea,
+          message: `Found a detailed map of the area! This will help with future explorations.`
+        };
+      } else {
+        // Found journal - add a custom journal entry
+        const journalAuthors = ["Unknown Survivor", "Facility Staff", "Government Official", "Resistance Member", "Child"];
+        const journalAuthor = journalAuthors[Math.floor(Math.random() * journalAuthors.length)];
+        
+        const journalTopics = [
+          "The days leading up to the Quiet Reset",
+          "The start of Operation Sleepwalker",
+          "Life in the government bunkers",
+          "Corporate involvement in the Reset",
+          "The stasis technology development"
+        ];
+        const journalTopic = journalTopics[Math.floor(Math.random() * journalTopics.length)];
+        
+        // Create a new journal entry
+        const newJournalEntry = {
+          title: `Found Journal: ${journalTopic}`,
+          author: journalAuthor,
+          text: `This journal contains crucial information about ${journalTopic}. The details here help connect more pieces of the puzzle about what happened during The Quiet Reset.`,
+          day: this.gameState.day
+        };
+        
+        // Add to player's journal
+        this.gameState.journal.push(newJournalEntry);
+        
+        // Knowledge increases leadership
+        this.gameState.leadershipScore += 1;
+        
+        result = {
+          type: 'journal',
+          entry: newJournalEntry,
+          message: `Found a journal from ${journalAuthor} about ${journalTopic}!`
+        };
+      }
+    } else if (resultChance > 0.2) {
+      // Found materials - common outcome
       const materialsFound = Math.floor(Math.random() * 5) + 1;
       this.gameState.resources.materials += materialsFound;
       
@@ -730,10 +861,18 @@ class ReclaimedGame {
         message: `Found ${materialsFound} materials from an abandoned structure.`
       };
     } else {
-      // Nothing special
+      // Nothing special or minor find
+      const minorFinds = [
+        "Explored the area but found nothing significant.",
+        "Found some interesting landmarks, but no useful resources.",
+        "Scouted the region and made mental notes of the terrain.",
+        "Discovered traces of previous survivors, but they're long gone.",
+        "Found evidence of wildlife returning to the area."
+      ];
+      
       result = {
         type: 'nothing',
-        message: "Explored the area but found nothing significant."
+        message: minorFinds[Math.floor(Math.random() * minorFinds.length)]
       };
     }
     

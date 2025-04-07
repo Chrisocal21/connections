@@ -1953,8 +1953,8 @@
         let populationHistory = [];
         
         // DOM Elements
-        const dayDisplay = document.getElementById('day-display');
-        const leadershipDisplay = document.getElementById('leadership-display');
+        const dayDisplay = document.getElementById('day-counter');
+        const leadershipDisplay = document.getElementById('leadership-value');
         const gameStatus = document.getElementById('game-status');
         const foodValue = document.getElementById('food-value');
         const waterValue = document.getElementById('water-value');
@@ -1964,8 +1964,11 @@
         const survivorList = document.getElementById('survivor-list');
         const discoveryList = document.getElementById('discovery-list');
         const warningIndicator = document.getElementById('warning-indicator');
-        const gameVersionDisplay = document.getElementById('game-version');
-        const resetGameBtn = document.getElementById('reset-game-btn');
+        const weatherIcon = document.getElementById('weather-icon');
+        const weatherType = document.getElementById('weather-type');
+        const weatherDescription = document.getElementById('weather-description');
+        const actionsRemaining = document.getElementById('actions-remaining');
+        const maxActions = document.getElementById('max-actions');
         
         // Phase markers
         const phaseAwakening = document.getElementById('phase-awakening');
@@ -2598,6 +2601,150 @@
         
         // Initialize UI
         updateUI();
+        
+        // Add event listeners for game action buttons
+        scavengeBtn.addEventListener('click', () => {
+            const result = game.scavengeResources();
+            
+            if (result.error) {
+                showMessage(result.message);
+                return;
+            }
+            
+            const message = `Found ${result.food} food, ${result.water} water, and ${result.materials} materials.`;
+            gameStatus.textContent = message;
+            showMessage(message);
+            
+            // Add to event log
+            const eventEntry = document.createElement('div');
+            eventEntry.className = 'event-entry';
+            eventEntry.textContent = `Day ${game.gameState.day}: ${message}`;
+            eventLog.prepend(eventEntry);
+            
+            updateUI();
+        });
+        
+        buildBtn.addEventListener('click', () => {
+            const result = game.buildStructure('shelter');
+            
+            if (result.error) {
+                showMessage(result.message);
+                return;
+            }
+            
+            gameStatus.textContent = result.message;
+            showMessage(result.message);
+            
+            // Add to event log
+            const eventEntry = document.createElement('div');
+            eventEntry.className = 'event-entry';
+            eventEntry.textContent = `Day ${game.gameState.day}: Built a new shelter.`;
+            eventLog.prepend(eventEntry);
+            
+            updateUI();
+        });
+        
+        exploreBtn.addEventListener('click', () => {
+            const result = game.explore();
+            
+            if (result.error) {
+                showMessage(result.message);
+                return;
+            }
+            
+            gameStatus.textContent = result.message;
+            showMessage(result.message);
+            
+            // Add to event log
+            const eventEntry = document.createElement('div');
+            eventEntry.className = 'event-entry';
+            eventEntry.textContent = `Day ${game.gameState.day}: ${result.message}`;
+            eventLog.prepend(eventEntry);
+            
+            updateUI();
+        });
+        
+        nextDayBtn.addEventListener('click', () => {
+            const result = game.advanceDay();
+            
+            gameStatus.textContent = result.message;
+            
+            // Add to event log
+            const eventEntry = document.createElement('div');
+            eventEntry.className = 'event-entry';
+            eventEntry.textContent = `Day ${game.gameState.day}: ${result.message}`;
+            eventLog.prepend(eventEntry);
+            
+            // Check if we got a journal entry
+            if (result.journal) {
+                showMessage(`Found a journal entry: "${result.journal.title}"`);
+            }
+            
+            updateUI();
+        });
+        
+        // Add event listeners for building-specific buttons
+        buildFarmBtn.addEventListener('click', () => {
+            const result = game.buildStructure('farm');
+            
+            if (result.error) {
+                showMessage(result.message);
+                return;
+            }
+            
+            gameStatus.textContent = result.message;
+            showMessage(result.message);
+            
+            // Add to event log
+            const eventEntry = document.createElement('div');
+            eventEntry.className = 'event-entry';
+            eventEntry.textContent = `Day ${game.gameState.day}: Built a new farm.`;
+            eventLog.prepend(eventEntry);
+            
+            updateUI();
+        });
+        
+        buildCisternBtn.addEventListener('click', () => {
+            const result = game.buildStructure('cistern');
+            
+            if (result.error) {
+                showMessage(result.message);
+                return;
+            }
+            
+            gameStatus.textContent = result.message;
+            showMessage(result.message);
+            
+            // Add to event log
+            const eventEntry = document.createElement('div');
+            eventEntry.className = 'event-entry';
+            eventEntry.textContent = `Day ${game.gameState.day}: Built a new cistern.`;
+            eventLog.prepend(eventEntry);
+            
+            updateUI();
+        });
+        
+        buildWorkshopBtn.addEventListener('click', () => {
+            const result = game.buildStructure('workshop');
+            
+            if (result.error) {
+                showMessage(result.message);
+                return;
+            }
+            
+            gameStatus.textContent = result.message;
+            showMessage(result.message);
+            
+            // Add to event log
+            const eventEntry = document.createElement('div');
+            eventEntry.className = 'event-entry';
+            eventEntry.textContent = `Day ${game.gameState.day}: Built a new workshop.`;
+            eventLog.prepend(eventEntry);
+            
+            updateUI();
+        });
+        
+        // Initialize save slots when tab is clicked
     </script>
     
     <footer class="repo-footer">
