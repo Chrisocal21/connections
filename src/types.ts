@@ -1,3 +1,5 @@
+// Type definitions for the Connections game
+
 export interface Group {
   id: number;
   tiles: number[];
